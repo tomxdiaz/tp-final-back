@@ -16,7 +16,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:e2e": "cross-env ENV_FILE=.env.dev jest --config ./test/jest-e2e.json",
-    "supabase:regeneratetypes": "npx supabase gen types typescript --linked > src/supabase/database.types.ts"
+    "supabase:regeneratetypes": "npx supabase gen types typescript --local > src/supabase/database.types.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

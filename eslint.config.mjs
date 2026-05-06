@@ -31,16 +31,16 @@ export default tseslint.config(
 
   {
     rules: {
-      // dejamos las unsafe activas 💣
       '@typescript-eslint/no-unsafe-call': 'error',
       '@typescript-eslint/no-unsafe-member-access': 'error',
       '@typescript-eslint/no-unsafe-assignment': 'warn',
       '@typescript-eslint/no-unsafe-return': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn',
 
-      // ajustes realistas para NestJS
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
+
+      '@typescript-eslint/no-redundant-type-constituents': 'off',
 
       'prettier/prettier': ['error', { endOfLine: 'auto' }],
     },
