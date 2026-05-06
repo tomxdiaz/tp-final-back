@@ -34,7 +34,24 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      app_user: {
+        Row: {
+          email: string
+          global_role: Database["public"]["Enums"]["global_role"]
+          id: string
+        }
+        Insert: {
+          email: string
+          global_role?: Database["public"]["Enums"]["global_role"]
+          id: string
+        }
+        Update: {
+          email?: string
+          global_role?: Database["public"]["Enums"]["global_role"]
+          id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -43,7 +60,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      global_role: "SUPER_USER" | "PROVIDER" | "USER"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -173,7 +190,9 @@ export const Constants = {
     Enums: {},
   },
   public: {
-    Enums: {},
+    Enums: {
+      global_role: ["SUPER_USER", "PROVIDER", "USER"],
+    },
   },
 } as const
 

@@ -3,6 +3,9 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthModule } from './health/health.module';
+import { SupabaseModule } from './supabase/supabase.module';
+import { AuthModule } from './auth/auth.module';
+import { AppUserModule } from './app_user/app_user.module';
 
 @Module({
   imports: [
@@ -12,10 +15,10 @@ import { HealthModule } from './health/health.module';
         process.env.ENV_FILE || `.env.${process.env.NODE_ENV || 'dev'}`,
       ignoreEnvFile: process.env.NODE_ENV === 'prod',
     }),
-    // SupabaseModule,
+    SupabaseModule,
     HealthModule,
-    // AuthModule,
-    // AppUserModule,
+    AuthModule,
+    AppUserModule,
   ],
   controllers: [AppController],
   providers: [AppService],

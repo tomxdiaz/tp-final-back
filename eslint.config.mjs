@@ -49,7 +49,6 @@ export default tseslint.config(
   {
     files: ['src/**/*.spec.ts', 'test/**/*.ts'],
     rules: {
-      // tests suelen necesitar más flexibilidad
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
     },
