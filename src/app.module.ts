@@ -6,6 +6,7 @@ import { HealthModule } from './health/health.module';
 import { SupabaseModule } from './supabase/supabase.module';
 import { AuthModule } from './auth/auth.module';
 import { AppUserModule } from './app_user/app_user.module';
+import { NewsletterModule } from './newsletter/newsletter.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { AppUserModule } from './app_user/app_user.module';
     HealthModule,
     AuthModule,
     AppUserModule,
+    NewsletterModule,
   ],
   controllers: [AppController],
   providers: [AppService],

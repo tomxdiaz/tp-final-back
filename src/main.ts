@@ -5,9 +5,19 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // app.enableCors({
+  //   origin: ['*'],
+  //   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  //   allowedHeaders: ['Content-Type', 'Authorization'],
+  // });
+
+  app.enableCors();
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
+      forbidNonWhitelisted: true,
       transform: true,
     }),
   );
@@ -28,7 +38,9 @@ async function bootstrap() {
     )
     .addSecurityRequirements('bearer')
     .build();
+
   const document = SwaggerModule.createDocument(app, config);
+
   SwaggerModule.setup('docs', app, document, {
     swaggerOptions: {
       // supportedSubmitMethods: [], // Deshabilita probar la API desde Swagger UI

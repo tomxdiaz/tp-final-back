@@ -52,6 +52,21 @@ export type Database = {
         }
         Relationships: []
       }
+      newsletter: {
+        Row: {
+          email: string
+          id: string
+        }
+        Insert: {
+          email: string
+          id?: string
+        }
+        Update: {
+          email?: string
+          id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
