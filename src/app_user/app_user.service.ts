@@ -9,6 +9,8 @@ import { AppUserDto } from './dto/app_user.dto';
 import { SupabaseService } from '../supabase/supabase.service';
 import { Tables } from '../supabase/database.types';
 import { UpdateGlobalRoleDto } from './dto/update-role.dto';
+import { UpdateMeDto } from './dto/update-me.dto';
+import { AppRole } from '../utils/enums/roles';
 
 type AppUser = Tables<'app_user'>;
 
@@ -122,6 +124,48 @@ export class AppUserService {
     }
 
     return this.toAppUserDto(data);
+  }
+
+  async updateMe(userId: string, dto: UpdateMeDto): Promise<AppUserDto> {
+    const supabase = this.supabaseService.getAdminClient();
+
+    const updates: { first_name?: string; last_name?: string; phone?: string } = {};
+    if (dto.first_name !== undefined) updates.first_name = dto.first_name;
+    if (dto.last_name !== undefined) updates.last_name = dto.last_name;
+    if (dto.phone !== undefined) updates.phone = dto.phone;
+
+    const { data, error } = await supabase
+      .from('app_user')
+      .update(updates)
+      .eq('id', userId)
+      .select('*')
+      .maybeSingle();
+
+    if (error) {
+      this.logger.error(`Error updating app_user: ${error.message}`);
+      throw new InternalServerErrorException('Error inesperado al actualizar el perfil');
+    }
+
+    if (!data) throw new NotFoundException('Usuario no encontrado');
+
+    return this.toAppUserDto(data);
+  }
+
+  async setBlockedStatus(userId: string, blocked: boolean): Promise<AppUserDto> {
+    const supabase = this.supabaseService.getAdminClient();
+
+    const { error } = await supabase.auth.admin.updateUserById(userId, {
+      ban_duration: blocked ? '876000h' : 'none',
+    });
+
+    if (error) {
+      this.logger.error(`Error blocking user: ${error.message}`);
+      throw new InternalServerErrorException(
+        'Error inesperado al actualizar el estado del usuario',
+      );
+    }
+
+    return this.findById(userId);
   }
 
   toAppUserDto(appUser: AppUser): AppUserDto {
