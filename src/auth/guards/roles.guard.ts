@@ -37,6 +37,8 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('Falta el usuario autenticado');
     }
 
+    if (currentRole === 'SUPER_USER') return true;
+
     if (!requiredRoles.includes(currentRole)) {
       throw new ForbiddenException(
         'No tenés permisos para acceder a este recurso',
