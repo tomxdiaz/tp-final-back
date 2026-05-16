@@ -129,6 +129,11 @@ export class AppUserService {
       id: appUser.id,
       email: appUser.email,
       global_role: appUser.global_role,
+      first_name: appUser.first_name ?? null,
+      last_name: appUser.last_name ?? null,
+      phone: appUser.phone ?? null,
+      created_at: appUser.created_at,
+      updated_at: appUser.updated_at,
     };
   }
 
