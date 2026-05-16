@@ -8,7 +8,6 @@ import {
 import { AppUserDto } from './dto/app_user.dto';
 import { SupabaseService } from '../supabase/supabase.service';
 import { Tables } from '../supabase/database.types';
-import { UpdateGlobalRoleDto } from './dto/update-role.dto';
 import { UpdateMeDto } from './dto/update-me.dto';
 import { AppRole } from '../utils/enums/roles';
 
@@ -85,25 +84,13 @@ export class AppUserService {
     return this.toAppUserDto(data);
   }
 
-  async updateGlobalRole(
-    updateGlobalRoleDto: UpdateGlobalRoleDto,
-  ): Promise<AppUserDto> {
-    const supabase = this.supabaseService.getClient();
-
-    if (!updateGlobalRoleDto.appUserId) {
-      throw new BadRequestException('El id del usuario es requerido');
-    }
-
-    if (!updateGlobalRoleDto.role) {
-      throw new BadRequestException('El rol es requerido');
-    }
+  async updateGlobalRole(userId: string, role: AppRole): Promise<AppUserDto> {
+    const supabase = this.supabaseService.getAdminClient();
 
     const { data, error } = await supabase
       .from('app_user')
-      .update({
-        global_role: updateGlobalRoleDto.role as AppUser['global_role'],
-      })
-      .eq('id', updateGlobalRoleDto.appUserId)
+      .update({ global_role: role })
+      .eq('id', userId)
       .select('*')
       .maybeSingle();
 
@@ -119,9 +106,7 @@ export class AppUserService {
       );
     }
 
-    if (!data) {
-      throw new NotFoundException('Usuario a actualizar no encontrado');
-    }
+    if (!data) throw new NotFoundException('Usuario a actualizar no encontrado');
 
     return this.toAppUserDto(data);
   }

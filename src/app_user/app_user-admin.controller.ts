@@ -1,0 +1,66 @@
+import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiForbiddenResponse,
+  ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import { AppUserService } from './app_user.service';
+import { AppUserDto } from './dto/app_user.dto';
+import { UpdateGlobalRoleDto } from './dto/update-role.dto';
+import { BlockUserDto } from './dto/block-user.dto';
+import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { AppRole } from '../utils/enums/roles';
+
+@ApiTags('admin/users')
+@ApiBearerAuth()
+@Roles(AppRole.SUPER_USER)
+@UseGuards(SupabaseAuthGuard, RolesGuard)
+@Controller('admin/users')
+export class AppUserAdminController {
+  constructor(private readonly appUserService: AppUserService) {}
+
+  @Get()
+  @ApiOperation({ summary: 'Listar todos los usuarios (SUPER_USER)' })
+  @ApiOkResponse({ type: AppUserDto, isArray: true })
+  @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
+  @ApiForbiddenResponse({ description: 'Sin permisos' })
+  @ApiInternalServerErrorResponse({ description: 'Error interno' })
+  async findAll(): Promise<AppUserDto[]> {
+    return this.appUserService.findAll();
+  }
+
+  @Patch(':id/role')
+  @ApiOperation({ summary: 'Cambiar el rol de un usuario (SUPER_USER)' })
+  @ApiOkResponse({ type: AppUserDto })
+  @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
+  @ApiForbiddenResponse({ description: 'Sin permisos' })
+  @ApiNotFoundResponse({ description: 'Usuario no encontrado' })
+  @ApiInternalServerErrorResponse({ description: 'Error interno' })
+  async updateRole(
+    @Param('id') id: string,
+    @Body() dto: UpdateGlobalRoleDto,
+  ): Promise<AppUserDto> {
+    return this.appUserService.updateGlobalRole(id, dto.role);
+  }
+
+  @Patch(':id/block')
+  @ApiOperation({ summary: 'Bloquear o desbloquear un usuario (SUPER_USER)' })
+  @ApiOkResponse({ type: AppUserDto })
+  @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
+  @ApiForbiddenResponse({ description: 'Sin permisos' })
+  @ApiNotFoundResponse({ description: 'Usuario no encontrado' })
+  @ApiInternalServerErrorResponse({ description: 'Error interno' })
+  async blockUser(
+    @Param('id') id: string,
+    @Body() dto: BlockUserDto,
+  ): Promise<AppUserDto> {
+    return this.appUserService.setBlockedStatus(id, dto.blocked);
+  }
+}
