@@ -59,3 +59,12 @@ pids
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# AI assistants & local dev docs (no subir a GitHub)
+CLAUDE.md
+GEMINI.md
+AGENTS.md
+.cursor/
+.cursorrules
+.claude/
+docs/superpowers/
