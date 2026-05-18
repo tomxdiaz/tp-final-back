@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiConflictResponse,
@@ -80,7 +80,7 @@ export class BusinessController {
   @ApiOkResponse({ type: BusinessDto })
   @ApiNotFoundResponse({ description: 'Negocio no encontrado' })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
-  async findPublicById(@Param('businessId') businessId: string): Promise<BusinessDto> {
+  async findPublicById(@Param('businessId', ParseIntPipe) businessId: number): Promise<BusinessDto> {
     return this.businessService.findPublicById(businessId);
   }
 }

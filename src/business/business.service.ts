@@ -90,7 +90,7 @@ export class BusinessService {
     return this.toBusinessDto(data);
   }
 
-  async findPublicById(businessId: string): Promise<BusinessDto> {
+  async findPublicById(businessId: number): Promise<BusinessDto> {
     const supabase = this.supabaseService.getAdminClient();
 
     const { data, error } = await supabase
@@ -110,7 +110,7 @@ export class BusinessService {
     return this.toBusinessDto(data);
   }
 
-  async verifyBusiness(businessId: string): Promise<BusinessDto> {
+  async verifyBusiness(businessId: number): Promise<BusinessDto> {
     const supabase = this.supabaseService.getAdminClient();
 
     const updates: Partial<Business> = {};

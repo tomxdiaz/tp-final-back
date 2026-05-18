@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiForbiddenResponse,
@@ -60,7 +60,7 @@ export class AdminController {
   @ApiNotFoundResponse({ description: 'Negocio no encontrado' })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
   async verifyBusiness(
-    @Param('id') id: string
+    @Param('id', ParseIntPipe) id: number
   ): Promise<BusinessDto> {
     return this.businessService.verifyBusiness(id);
   }

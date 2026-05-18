@@ -1,10 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEmail, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsBoolean, IsEmail, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class BusinessDto {
-  @ApiProperty({ format: 'uuid' })
-  @IsUUID()
-  id!: string;
+  @ApiProperty({ example: 1 })
+  @IsNumber()
+  id!: number;
 
   @ApiProperty({ format: 'uuid' })
   @IsUUID()
