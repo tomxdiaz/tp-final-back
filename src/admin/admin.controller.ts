@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiForbiddenResponse,
@@ -26,8 +34,11 @@ import { BusinessService } from '../business/business.service';
 @UseGuards(SupabaseAuthGuard, RolesGuard)
 @Controller('admin')
 export class AdminController {
-  constructor(private readonly appUserService: AppUserService, private readonly businessService: BusinessService) {}
-  
+  constructor(
+    private readonly appUserService: AppUserService,
+    private readonly businessService: BusinessService,
+  ) {}
+
   @Get('/user')
   @ApiOperation({ summary: 'Listar todos los usuarios (SUPER_USER)' })
   @ApiOkResponse({ type: AppUserDto, isArray: true })
@@ -60,7 +71,7 @@ export class AdminController {
   @ApiNotFoundResponse({ description: 'Negocio no encontrado' })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
   async verifyBusiness(
-    @Param('id', ParseIntPipe) id: number
+    @Param('id', ParseIntPipe) id: number,
   ): Promise<BusinessDto> {
     return this.businessService.verifyBusiness(id);
   }
