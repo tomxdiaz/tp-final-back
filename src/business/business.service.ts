@@ -37,9 +37,13 @@ export class BusinessService {
     if (error) {
       this.logger.error(`Error creating business: ${error.message}`);
       if (error.code === '23505') {
-        throw new ConflictException('Ya existe un perfil de negocio para este usuario');
+        throw new ConflictException(
+          'Ya existe un perfil de negocio para este usuario',
+        );
       }
-      throw new InternalServerErrorException('Error inesperado al crear el perfil de negocio');
+      throw new InternalServerErrorException(
+        'Error inesperado al crear el perfil de negocio',
+      );
     }
 
     return this.toBusinessDto(data);
@@ -56,7 +60,9 @@ export class BusinessService {
 
     if (error) {
       this.logger.error(`Error finding business: ${error.message}`);
-      throw new InternalServerErrorException('Error inesperado al obtener el perfil de negocio');
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener el perfil de negocio',
+      );
     }
 
     if (!data) throw new NotFoundException('Perfil de negocio no encontrado');
@@ -64,14 +70,20 @@ export class BusinessService {
     return this.toBusinessDto(data);
   }
 
-  async updateMyProfile(userId: string, dto: UpdateBusinessDto): Promise<BusinessDto> {
+  async updateMyProfile(
+    userId: string,
+    dto: UpdateBusinessDto,
+  ): Promise<BusinessDto> {
     const supabase = this.supabaseService.getAdminClient();
 
     const updates: Partial<Business> = {};
-    if (dto.business_name !== undefined) updates.business_name = dto.business_name;
+    if (dto.business_name !== undefined)
+      updates.business_name = dto.business_name;
     if (dto.description !== undefined) updates.description = dto.description;
-    if (dto.contact_email !== undefined) updates.contact_email = dto.contact_email;
-    if (dto.contact_phone !== undefined) updates.contact_phone = dto.contact_phone;
+    if (dto.contact_email !== undefined)
+      updates.contact_email = dto.contact_email;
+    if (dto.contact_phone !== undefined)
+      updates.contact_phone = dto.contact_phone;
 
     const { data, error } = await supabase
       .from('business')
@@ -82,7 +94,9 @@ export class BusinessService {
 
     if (error) {
       this.logger.error(`Error updating business: ${error.message}`);
-      throw new InternalServerErrorException('Error inesperado al actualizar el perfil de negocio');
+      throw new InternalServerErrorException(
+        'Error inesperado al actualizar el perfil de negocio',
+      );
     }
 
     if (!data) throw new NotFoundException('Perfil de negocio no encontrado');
@@ -102,7 +116,9 @@ export class BusinessService {
 
     if (error) {
       this.logger.error(`Error finding business by id: ${error.message}`);
-      throw new InternalServerErrorException('Error inesperado al obtener el negocio');
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener el negocio',
+      );
     }
 
     if (!data) throw new NotFoundException('Negocio no encontrado');
@@ -125,7 +141,9 @@ export class BusinessService {
 
     if (error) {
       this.logger.error(`Error verifying business: ${error.message}`);
-      throw new InternalServerErrorException('Error inesperado al verificar el negocio');
+      throw new InternalServerErrorException(
+        'Error inesperado al verificar el negocio',
+      );
     }
 
     if (!data) throw new NotFoundException('Negocio no encontrado');
