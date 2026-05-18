@@ -11,10 +11,10 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { ProviderService } from './provider.service';
-import { ProviderDto } from './dto/provider.dto';
-import { CreateProviderDto } from './dto/create-provider.dto';
-import { UpdateProviderDto } from './dto/update-provider.dto';
+import { BusinessService } from './business.service';
+import { BusinessDto } from './dto/business.dto';
+import { CreateBusinessDto } from './dto/create-business.dto';
+import { UpdateBusinessDto } from './dto/update-business.dto';
 import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -24,63 +24,63 @@ import type { Tables } from '../supabase/database.types';
 
 type AppUser = Tables<'app_user'>;
 
-@ApiTags('provider')
-@Controller('provider')
-export class ProviderController {
-  constructor(private readonly providerService: ProviderService) {}
+@ApiTags('business')
+@Controller('business')
+export class BusinessController {
+  constructor(private readonly businessService: BusinessService) {}
 
   @Post()
   @ApiBearerAuth()
   @UseGuards(SupabaseAuthGuard)
-  @ApiOperation({ summary: 'Crear perfil de provider (USER o SUPER_USER)' })
-  @ApiCreatedResponse({ type: ProviderDto })
-  @ApiConflictResponse({ description: 'Ya existe un perfil de provider para este usuario' })
+  @ApiOperation({ summary: 'Crear perfil de negocio (USER o SUPER_USER)' })
+  @ApiCreatedResponse({ type: BusinessDto })
+  @ApiConflictResponse({ description: 'Ya existe un perfil de negocio para este usuario' })
   @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
   async create(
     @CurrentAppUser appUser: AppUser,
-    @Body() dto: CreateProviderDto,
-  ): Promise<ProviderDto> {
-    return this.providerService.create(appUser.id, dto);
+    @Body() dto: CreateBusinessDto,
+  ): Promise<BusinessDto> {
+    return this.businessService.create(appUser.id, dto);
   }
 
   @Get('me')
   @ApiBearerAuth()
   @Roles(AppRole.PROVIDER)
   @UseGuards(SupabaseAuthGuard, RolesGuard)
-  @ApiOperation({ summary: 'Mi perfil de provider (PROVIDER o SUPER_USER)' })
-  @ApiOkResponse({ type: ProviderDto })
+  @ApiOperation({ summary: 'Mi perfil de negocio (PROVIDER o SUPER_USER)' })
+  @ApiOkResponse({ type: BusinessDto })
   @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
   @ApiForbiddenResponse({ description: 'Sin permisos' })
-  @ApiNotFoundResponse({ description: 'Perfil de provider no encontrado' })
+  @ApiNotFoundResponse({ description: 'Perfil de negocio no encontrado' })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
-  async findMe(@CurrentAppUser appUser: AppUser): Promise<ProviderDto> {
-    return this.providerService.findMyProfile(appUser.id);
+  async findMe(@CurrentAppUser appUser: AppUser): Promise<BusinessDto> {
+    return this.businessService.findMyProfile(appUser.id);
   }
 
   @Patch('me')
   @ApiBearerAuth()
   @Roles(AppRole.PROVIDER)
   @UseGuards(SupabaseAuthGuard, RolesGuard)
-  @ApiOperation({ summary: 'Editar mi perfil de provider (PROVIDER o SUPER_USER)' })
-  @ApiOkResponse({ type: ProviderDto })
+  @ApiOperation({ summary: 'Editar mi perfil de negocio (PROVIDER o SUPER_USER)' })
+  @ApiOkResponse({ type: BusinessDto })
   @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
   @ApiForbiddenResponse({ description: 'Sin permisos' })
-  @ApiNotFoundResponse({ description: 'Perfil de provider no encontrado' })
+  @ApiNotFoundResponse({ description: 'Perfil de negocio no encontrado' })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
   async updateMe(
     @CurrentAppUser appUser: AppUser,
-    @Body() dto: UpdateProviderDto,
-  ): Promise<ProviderDto> {
-    return this.providerService.updateMyProfile(appUser.id, dto);
+    @Body() dto: UpdateBusinessDto,
+  ): Promise<BusinessDto> {
+    return this.businessService.updateMyProfile(appUser.id, dto);
   }
 
-  @Get(':providerId')
-  @ApiOperation({ summary: 'Perfil público de un provider (sin auth)' })
-  @ApiOkResponse({ type: ProviderDto })
-  @ApiNotFoundResponse({ description: 'Provider no encontrado' })
+  @Get(':businessId')
+  @ApiOperation({ summary: 'Perfil público de un negocio (sin auth)' })
+  @ApiOkResponse({ type: BusinessDto })
+  @ApiNotFoundResponse({ description: 'Negocio no encontrado' })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
-  async findPublicById(@Param('providerId') providerId: string): Promise<ProviderDto> {
-    return this.providerService.findPublicById(providerId);
+  async findPublicById(@Param('businessId') businessId: string): Promise<BusinessDto> {
+    return this.businessService.findPublicById(businessId);
   }
 }

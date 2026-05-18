@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsEmail, IsOptional, IsString, IsUUID } from 'class-validator';
 
-export class ProviderDto {
+export class BusinessDto {
   @ApiProperty({ format: 'uuid' })
   @IsUUID()
   id!: string;

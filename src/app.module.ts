@@ -7,7 +7,8 @@ import { SupabaseModule } from './supabase/supabase.module';
 import { AuthModule } from './auth/auth.module';
 import { AppUserModule } from './app_user/app_user.module';
 import { NewsletterModule } from './newsletter/newsletter.module';
-import { ProviderModule } from './provider/provider.module';
+import { BusinessModule } from './business/business.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import { ProviderModule } from './provider/provider.module';
     AuthModule,
     AppUserModule,
     NewsletterModule,
-    ProviderModule,
+    BusinessModule,
+    AdminModule
   ],
   controllers: [AppController],
   providers: [AppService],

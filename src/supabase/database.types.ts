@@ -52,7 +52,7 @@ export type Database = {
           max_participants: number | null
           meeting_point: string | null
           min_age: number | null
-          provider_id: string
+          business_id: string
           province: string | null
           title: string
           updated_at: string
@@ -74,7 +74,7 @@ export type Database = {
           max_participants?: number | null
           meeting_point?: string | null
           min_age?: number | null
-          provider_id: string
+          business_id: string
           province?: string | null
           title: string
           updated_at?: string
@@ -96,17 +96,17 @@ export type Database = {
           max_participants?: number | null
           meeting_point?: string | null
           min_age?: number | null
-          provider_id?: string
+          business_id?: string
           province?: string | null
           title?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "activity_provider_id_fkey"
-            columns: ["provider_id"]
+            foreignKeyName: "activity_business_id_fkey"
+            columns: ["business_id"]
             isOneToOne: false
-            referencedRelation: "provider"
+            referencedRelation: "business"
             referencedColumns: ["id"]
           },
         ]
@@ -329,7 +329,7 @@ export type Database = {
         }
         Relationships: []
       }
-      provider: {
+      business: {
         Row: {
           app_user_id: string
           business_name: string
@@ -365,7 +365,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "provider_app_user_id_fkey"
+            foreignKeyName: "business_app_user_id_fkey"
             columns: ["app_user_id"]
             isOneToOne: true
             referencedRelation: "app_user"
