@@ -37,6 +37,7 @@ export type Database = {
       activity: {
         Row: {
           base_price: number
+          business_id: number
           category: string
           country: string
           created_at: string
@@ -44,7 +45,7 @@ export type Database = {
           description: string | null
           difficulty: Database["public"]["Enums"]["difficulty_level"] | null
           duration_minutes: number | null
-          id: string
+          id: number
           is_active: boolean
           latitude: number | null
           location_name: string | null
@@ -52,13 +53,13 @@ export type Database = {
           max_participants: number | null
           meeting_point: string | null
           min_age: number | null
-          business_id: string
           province: string | null
           title: string
           updated_at: string
         }
         Insert: {
           base_price: number
+          business_id: number
           category: string
           country?: string
           created_at?: string
@@ -66,7 +67,7 @@ export type Database = {
           description?: string | null
           difficulty?: Database["public"]["Enums"]["difficulty_level"] | null
           duration_minutes?: number | null
-          id?: string
+          id?: number
           is_active?: boolean
           latitude?: number | null
           location_name?: string | null
@@ -74,13 +75,13 @@ export type Database = {
           max_participants?: number | null
           meeting_point?: string | null
           min_age?: number | null
-          business_id: string
           province?: string | null
           title: string
           updated_at?: string
         }
         Update: {
           base_price?: number
+          business_id?: number
           category?: string
           country?: string
           created_at?: string
@@ -88,7 +89,7 @@ export type Database = {
           description?: string | null
           difficulty?: Database["public"]["Enums"]["difficulty_level"] | null
           duration_minutes?: number | null
-          id?: string
+          id?: number
           is_active?: boolean
           latitude?: number | null
           location_name?: string | null
@@ -96,7 +97,6 @@ export type Database = {
           max_participants?: number | null
           meeting_point?: string | null
           min_age?: number | null
-          business_id?: string
           province?: string | null
           title?: string
           updated_at?: string
@@ -113,48 +113,27 @@ export type Database = {
       }
       activity_schedule_rule: {
         Row: {
-          activity_id: string
-          capacity: number
+          activity_id: number
+          amount_of_days: number
           created_at: string
-          currency: string
           days_of_week: number[]
-          duration_minutes: number
-          end_date: string
-          id: string
-          is_active: boolean
-          price: number
-          start_date: string
-          start_time: string
+          id: number
           updated_at: string
         }
         Insert: {
-          activity_id: string
-          capacity: number
+          activity_id: number
+          amount_of_days: number
           created_at?: string
-          currency?: string
           days_of_week: number[]
-          duration_minutes: number
-          end_date: string
-          id?: string
-          is_active?: boolean
-          price: number
-          start_date: string
-          start_time: string
+          id?: number
           updated_at?: string
         }
         Update: {
-          activity_id?: string
-          capacity?: number
+          activity_id?: number
+          amount_of_days?: number
           created_at?: string
-          currency?: string
           days_of_week?: number[]
-          duration_minutes?: number
-          end_date?: string
-          id?: string
-          is_active?: boolean
-          price?: number
-          start_date?: string
-          start_time?: string
+          id?: number
           updated_at?: string
         }
         Relationships: [
@@ -169,44 +148,32 @@ export type Database = {
       }
       activity_session: {
         Row: {
-          activity_id: string
+          activity_id: number
           booked_spots: number
-          capacity: number
           created_at: string
-          currency: string
-          end_datetime: string
-          id: string
-          price: number
-          schedule_rule_id: string | null
-          start_datetime: string
+          datetime: string
+          id: number
+          schedule_rule_id: number | null
           status: Database["public"]["Enums"]["session_status"]
           updated_at: string
         }
         Insert: {
-          activity_id: string
+          activity_id: number
           booked_spots?: number
-          capacity: number
           created_at?: string
-          currency?: string
-          end_datetime: string
-          id?: string
-          price: number
-          schedule_rule_id?: string | null
-          start_datetime: string
+          datetime: string
+          id?: number
+          schedule_rule_id?: number | null
           status?: Database["public"]["Enums"]["session_status"]
           updated_at?: string
         }
         Update: {
-          activity_id?: string
+          activity_id?: number
           booked_spots?: number
-          capacity?: number
           created_at?: string
-          currency?: string
-          end_datetime?: string
-          id?: string
-          price?: number
-          schedule_rule_id?: string | null
-          start_datetime?: string
+          datetime?: string
+          id?: number
+          schedule_rule_id?: number | null
           status?: Database["public"]["Enums"]["session_status"]
           updated_at?: string
         }
@@ -262,36 +229,33 @@ export type Database = {
       }
       booking: {
         Row: {
-          activity_session_id: string
+          activity_session_id: number
           app_user_id: string
           created_at: string
-          currency: string
           customer_notes: string | null
-          id: string
+          id: number
           number_of_people: number
           status: Database["public"]["Enums"]["booking_status"]
           total_price: number
           updated_at: string
         }
         Insert: {
-          activity_session_id: string
+          activity_session_id: number
           app_user_id: string
           created_at?: string
-          currency?: string
           customer_notes?: string | null
-          id?: string
+          id?: number
           number_of_people: number
           status?: Database["public"]["Enums"]["booking_status"]
           total_price: number
           updated_at?: string
         }
         Update: {
-          activity_session_id?: string
+          activity_session_id?: number
           app_user_id?: string
           created_at?: string
-          currency?: string
           customer_notes?: string | null
-          id?: string
+          id?: number
           number_of_people?: number
           status?: Database["public"]["Enums"]["booking_status"]
           total_price?: number
@@ -314,6 +278,50 @@ export type Database = {
           },
         ]
       }
+      business: {
+        Row: {
+          app_user_id: string
+          business_name: string
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          description: string | null
+          id: number
+          updated_at: string
+          verified: boolean
+        }
+        Insert: {
+          app_user_id: string
+          business_name: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          id?: number
+          updated_at?: string
+          verified?: boolean
+        }
+        Update: {
+          app_user_id?: string
+          business_name?: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          id?: number
+          updated_at?: string
+          verified?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_app_user_id_fkey"
+            columns: ["app_user_id"]
+            isOneToOne: true
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       newsletter: {
         Row: {
           email: string
@@ -329,78 +337,34 @@ export type Database = {
         }
         Relationships: []
       }
-      business: {
-        Row: {
-          app_user_id: string
-          business_name: string
-          contact_email: string | null
-          contact_phone: string | null
-          created_at: string
-          description: string | null
-          id: string
-          updated_at: string
-          verified: boolean
-        }
-        Insert: {
-          app_user_id: string
-          business_name: string
-          contact_email?: string | null
-          contact_phone?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          updated_at?: string
-          verified?: boolean
-        }
-        Update: {
-          app_user_id?: string
-          business_name?: string
-          contact_email?: string | null
-          contact_phone?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          updated_at?: string
-          verified?: boolean
-        }
-        Relationships: [
-          {
-            foreignKeyName: "business_app_user_id_fkey"
-            columns: ["app_user_id"]
-            isOneToOne: true
-            referencedRelation: "app_user"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       review: {
         Row: {
-          activity_id: string
+          activity_id: number
           app_user_id: string
-          booking_id: string
+          booking_id: number
           comment: string | null
           created_at: string
-          id: string
+          id: number
           rating: number
           updated_at: string
         }
         Insert: {
-          activity_id: string
+          activity_id: number
           app_user_id: string
-          booking_id: string
+          booking_id: number
           comment?: string | null
           created_at?: string
-          id?: string
+          id?: number
           rating: number
           updated_at?: string
         }
         Update: {
-          activity_id?: string
+          activity_id?: number
           app_user_id?: string
-          booking_id?: string
+          booking_id?: number
           comment?: string | null
           created_at?: string
-          id?: string
+          id?: number
           rating?: number
           updated_at?: string
         }

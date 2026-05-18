@@ -62,7 +62,6 @@ create table if not exists public.activity_schedule_rule (
   activity_id      integer not null references public.activity(id),
   amount_of_days   int not null,
   days_of_week     int[] not null,
-  start_time       time not null,
   created_at       timestamptz not null default now(),
   updated_at       timestamptz not null default now()
 );
@@ -77,7 +76,7 @@ create table if not exists public.activity_session (
   status           public.session_status not null default 'AVAILABLE',
   created_at       timestamptz not null default now(),
   updated_at       timestamptz not null default now(),
-  constraint uq_session unique (activity_id, schedule_rule_id, datetime),
+  constraint uq_session unique (activity_id, schedule_rule_id, datetime)
 );
 
 -- ── Booking ───────────────────────────────────────────────────────
