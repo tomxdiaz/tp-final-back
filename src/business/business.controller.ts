@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiConflictResponse,
@@ -34,7 +43,9 @@ export class BusinessController {
   @UseGuards(SupabaseAuthGuard)
   @ApiOperation({ summary: 'Crear perfil de negocio (USER o SUPER_USER)' })
   @ApiCreatedResponse({ type: BusinessDto })
-  @ApiConflictResponse({ description: 'Ya existe un perfil de negocio para este usuario' })
+  @ApiConflictResponse({
+    description: 'Ya existe un perfil de negocio para este usuario',
+  })
   @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
   async create(
@@ -62,7 +73,9 @@ export class BusinessController {
   @ApiBearerAuth()
   @Roles(AppRole.PROVIDER)
   @UseGuards(SupabaseAuthGuard, RolesGuard)
-  @ApiOperation({ summary: 'Editar mi perfil de negocio (PROVIDER o SUPER_USER)' })
+  @ApiOperation({
+    summary: 'Editar mi perfil de negocio (PROVIDER o SUPER_USER)',
+  })
   @ApiOkResponse({ type: BusinessDto })
   @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
   @ApiForbiddenResponse({ description: 'Sin permisos' })
@@ -80,7 +93,9 @@ export class BusinessController {
   @ApiOkResponse({ type: BusinessDto })
   @ApiNotFoundResponse({ description: 'Negocio no encontrado' })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
-  async findPublicById(@Param('businessId') businessId: string): Promise<BusinessDto> {
+  async findPublicById(
+    @Param('businessId', ParseIntPipe) businessId: number,
+  ): Promise<BusinessDto> {
     return this.businessService.findPublicById(businessId);
   }
 }
