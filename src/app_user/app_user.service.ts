@@ -8,7 +8,8 @@ import {
 import { AppUserDto } from './dto/app_user.dto';
 import { SupabaseService } from '../supabase/supabase.service';
 import { Tables } from '../supabase/database.types';
-import { UpdateGlobalRoleDto } from './dto/update-role.dto';
+import { UpdateMeDto } from './dto/update-me.dto';
+import { AppRole } from '../utils/enums/roles';
 
 type AppUser = Tables<'app_user'>;
 
@@ -83,25 +84,13 @@ export class AppUserService {
     return this.toAppUserDto(data);
   }
 
-  async updateGlobalRole(
-    updateGlobalRoleDto: UpdateGlobalRoleDto,
-  ): Promise<AppUserDto> {
-    const supabase = this.supabaseService.getClient();
-
-    if (!updateGlobalRoleDto.appUserId) {
-      throw new BadRequestException('El id del usuario es requerido');
-    }
-
-    if (!updateGlobalRoleDto.role) {
-      throw new BadRequestException('El rol es requerido');
-    }
+  async updateGlobalRole(userId: string, role: AppRole): Promise<AppUserDto> {
+    const supabase = this.supabaseService.getAdminClient();
 
     const { data, error } = await supabase
       .from('app_user')
-      .update({
-        global_role: updateGlobalRoleDto.role as AppUser['global_role'],
-      })
-      .eq('id', updateGlobalRoleDto.appUserId)
+      .update({ global_role: role })
+      .eq('id', userId)
       .select('*')
       .maybeSingle();
 
@@ -117,11 +106,51 @@ export class AppUserService {
       );
     }
 
-    if (!data) {
-      throw new NotFoundException('Usuario a actualizar no encontrado');
-    }
+    if (!data) throw new NotFoundException('Usuario a actualizar no encontrado');
 
     return this.toAppUserDto(data);
+  }
+
+  async updateMe(userId: string, dto: UpdateMeDto): Promise<AppUserDto> {
+    const supabase = this.supabaseService.getAdminClient();
+
+    const updates: { first_name?: string; last_name?: string; phone?: string } = {};
+    if (dto.first_name !== undefined) updates.first_name = dto.first_name;
+    if (dto.last_name !== undefined) updates.last_name = dto.last_name;
+    if (dto.phone !== undefined) updates.phone = dto.phone;
+
+    const { data, error } = await supabase
+      .from('app_user')
+      .update(updates)
+      .eq('id', userId)
+      .select('*')
+      .maybeSingle();
+
+    if (error) {
+      this.logger.error(`Error updating app_user: ${error.message}`);
+      throw new InternalServerErrorException('Error inesperado al actualizar el perfil');
+    }
+
+    if (!data) throw new NotFoundException('Usuario no encontrado');
+
+    return this.toAppUserDto(data);
+  }
+
+  async setBlockedStatus(userId: string, blocked: boolean): Promise<AppUserDto> {
+    const supabase = this.supabaseService.getAdminClient();
+
+    const { error } = await supabase.auth.admin.updateUserById(userId, {
+      ban_duration: blocked ? '876000h' : 'none',
+    });
+
+    if (error) {
+      this.logger.error(`Error blocking user: ${error.message}`);
+      throw new InternalServerErrorException(
+        'Error inesperado al actualizar el estado del usuario',
+      );
+    }
+
+    return this.findById(userId);
   }
 
   toAppUserDto(appUser: AppUser): AppUserDto {
@@ -129,6 +158,11 @@ export class AppUserService {
       id: appUser.id,
       email: appUser.email,
       global_role: appUser.global_role,
+      first_name: appUser.first_name ?? null,
+      last_name: appUser.last_name ?? null,
+      phone: appUser.phone ?? null,
+      created_at: appUser.created_at,
+      updated_at: appUser.updated_at,
     };
   }
 
