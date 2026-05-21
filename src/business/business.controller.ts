@@ -57,9 +57,8 @@ export class BusinessController {
 
   @Get('me')
   @ApiBearerAuth()
-  @Roles(AppRole.PROVIDER)
-  @UseGuards(SupabaseAuthGuard, RolesGuard)
-  @ApiOperation({ summary: 'Mi perfil de negocio (PROVIDER o SUPER_USER)' })
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({ summary: 'Mi perfil de negocio (SUPER_USER)' })
   @ApiOkResponse({ type: BusinessDto })
   @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
   @ApiForbiddenResponse({ description: 'Sin permisos' })
