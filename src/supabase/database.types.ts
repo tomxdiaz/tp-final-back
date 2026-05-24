@@ -402,7 +402,7 @@ export type Database = {
     Enums: {
       booking_status: "PENDING" | "CONFIRMED" | "CANCELLED"
       difficulty_level: "BAJA" | "MEDIA" | "ALTA" | "EXTREMA"
-      global_role: "SUPER_USER" | "PROVIDER" | "USER"
+      global_role: "SUPER_USER" | "USER"
       session_status: "AVAILABLE" | "CANCELLED" | "COMPLETED"
     }
     CompositeTypes: {
@@ -536,7 +536,7 @@ export const Constants = {
     Enums: {
       booking_status: ["PENDING", "CONFIRMED", "CANCELLED"],
       difficulty_level: ["BAJA", "MEDIA", "ALTA", "EXTREMA"],
-      global_role: ["SUPER_USER", "PROVIDER", "USER"],
+      global_role: ["SUPER_USER", "USER"],
       session_status: ["AVAILABLE", "CANCELLED", "COMPLETED"],
     },
   },

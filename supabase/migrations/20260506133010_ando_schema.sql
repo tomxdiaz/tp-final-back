@@ -1,4 +1,4 @@
-create type public.global_role as enum ('SUPER_USER', 'PROVIDER', 'USER');
+create type public.global_role as enum ('SUPER_USER', 'USER');
 
 create table public.app_user (
   id uuid primary key,
