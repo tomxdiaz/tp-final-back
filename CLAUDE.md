@@ -4,23 +4,23 @@
 NestJS + TypeScript · Supabase (PostgreSQL) · JWT Supabase Auth · TypeORM
 
 ## Roles
-`global_role` en `app_user`: `SUPER_USER` | `PROVIDER` | `USER`
+`global_role` en `app_user`: `SUPER_USER` | `USER`
 JWT de Supabase trae `sub` = `app_user.id`
 
 ---
 
 ### app_user
-GET   /app_user/me              USER | PROVIDER | SUPER  — mi perfil
-PATCH /app_user/me              USER | PROVIDER | SUPER  — editar mis datos
-GET   /admin/users              SUPER                   — listar usuarios
-PATCH /admin/users/:id/role     SUPER                   — cambiar rol
-PATCH /admin/users/:id/block    SUPER                   — bloquear usuario
+GET   /app_user/me              USER | SUPER  — mi perfil
+PATCH /app_user/me              USER | SUPER  — editar mis datos
+GET   /admin/user               SUPER         — listar usuarios
+PATCH /admin/user/:id/role      SUPER         — cambiar rol
+PATCH /admin/user/:id/block     SUPER         — bloquear usuario
 
 ### business
-POST  /business                 USER | SUPER   — crear perfil de negocio (app_user_id UNIQUE)
-GET   /business/me              PROVIDER       — mi perfil de negocio
-PATCH /business/me              PROVIDER       — editar mi perfil
-GET   /business/:businessId     PUBLIC         — perfil público
+POST  /business                 USER | SUPER  — crear perfil de negocio (app_user_id UNIQUE)
+GET   /business/me              USER | SUPER  — mi perfil de negocio
+PATCH /business/me              USER | SUPER  — editar mi perfil
+GET   /business/:businessId     PUBLIC        — perfil público
 
 ## Reglas de negocio críticas
 

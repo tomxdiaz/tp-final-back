@@ -12,7 +12,6 @@ import {
   ApiBearerAuth,
   ApiConflictResponse,
   ApiCreatedResponse,
-  ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -25,10 +24,7 @@ import { BusinessDto } from './dto/business.dto';
 import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
 import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentAppUser } from '../auth/decorators/current-app-user.decorator';
-import { AppRole } from '../utils/enums/roles';
 import type { Tables } from '../supabase/database.types';
 
 type AppUser = Tables<'app_user'>;
@@ -57,12 +53,10 @@ export class BusinessController {
 
   @Get('me')
   @ApiBearerAuth()
-  @Roles(AppRole.PROVIDER)
-  @UseGuards(SupabaseAuthGuard, RolesGuard)
-  @ApiOperation({ summary: 'Mi perfil de negocio (PROVIDER o SUPER_USER)' })
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({ summary: 'Mi perfil de negocio' })
   @ApiOkResponse({ type: BusinessDto })
   @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
-  @ApiForbiddenResponse({ description: 'Sin permisos' })
   @ApiNotFoundResponse({ description: 'Perfil de negocio no encontrado' })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
   async findMe(@CurrentAppUser appUser: AppUser): Promise<BusinessDto> {
@@ -71,14 +65,10 @@ export class BusinessController {
 
   @Patch('me')
   @ApiBearerAuth()
-  @Roles(AppRole.PROVIDER)
-  @UseGuards(SupabaseAuthGuard, RolesGuard)
-  @ApiOperation({
-    summary: 'Editar mi perfil de negocio (PROVIDER o SUPER_USER)',
-  })
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({ summary: 'Editar mi perfil de negocio' })
   @ApiOkResponse({ type: BusinessDto })
   @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
-  @ApiForbiddenResponse({ description: 'Sin permisos' })
   @ApiNotFoundResponse({ description: 'Perfil de negocio no encontrado' })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
   async updateMe(

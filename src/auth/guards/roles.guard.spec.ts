@@ -26,22 +26,22 @@ describe('RolesGuard', () => {
   });
 
   it('allows when user has the required role', () => {
-    reflector.getAllAndOverride.mockReturnValue(['PROVIDER']);
-    expect(guard.canActivate(makeContext('PROVIDER'))).toBe(true);
+    reflector.getAllAndOverride.mockReturnValue(['SUPER_USER']);
+    expect(guard.canActivate(makeContext('SUPER_USER'))).toBe(true);
   });
 
   it('denies when user does not have the required role', () => {
-    reflector.getAllAndOverride.mockReturnValue(['PROVIDER']);
+    reflector.getAllAndOverride.mockReturnValue(['SUPER_USER']);
     expect(() => guard.canActivate(makeContext('USER'))).toThrow(ForbiddenException);
   });
 
   it('allows SUPER_USER regardless of required roles', () => {
-    reflector.getAllAndOverride.mockReturnValue(['PROVIDER']);
+    reflector.getAllAndOverride.mockReturnValue(['SUPER_USER']);
     expect(guard.canActivate(makeContext('SUPER_USER'))).toBe(true);
   });
 
   it('throws when appUser is missing', () => {
-    reflector.getAllAndOverride.mockReturnValue(['PROVIDER']);
+    reflector.getAllAndOverride.mockReturnValue(['SUPER_USER']);
     const ctx = {
       getHandler: () => ({}),
       getClass: () => ({}),
