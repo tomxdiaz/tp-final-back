@@ -13,6 +13,10 @@ import type { Tables } from '../supabase/database.types';
 
 type Booking = Tables<'booking'>;
 
+type SessionWithActivity = Tables<'activity_session'> & {
+  activity: Pick<Tables<'activity'>, 'base_price' | 'max_participants'>;
+};
+
 @Injectable()
 export class BookingService {
   private readonly logger = new Logger(BookingService.name);
@@ -22,11 +26,13 @@ export class BookingService {
   async create(userId: string, dto: CreateBookingDto): Promise<BookingDto> {
     const supabase = this.supabaseService.getAdminClient();
 
-    const { data: session, error: sError } = await supabase
+    const { data: sessionRaw, error: sError } = await supabase
       .from('activity_session')
       .select('*, activity!inner(base_price, max_participants)')
       .eq('id', dto.activity_session_id)
       .maybeSingle();
+
+    const session = sessionRaw as SessionWithActivity | null;
 
     if (sError) {
       this.logger.error(`Error finding session: ${sError.message}`);
@@ -38,10 +44,8 @@ export class BookingService {
       throw new BadRequestException('La sesión no está disponible');
     }
 
-    const activity = (session as any).activity as { base_price: number; max_participants: number | null };
-
-    if (activity.max_participants !== null) {
-      const available = activity.max_participants - session.booked_spots;
+    if (session.activity.max_participants !== null) {
+      const available = session.activity.max_participants - session.booked_spots;
       if (dto.number_of_people > available) {
         throw new BadRequestException(
           `No hay suficientes lugares. Disponibles: ${available}`,
@@ -49,7 +53,7 @@ export class BookingService {
       }
     }
 
-    const total_price = activity.base_price * dto.number_of_people;
+    const total_price = session.activity.base_price * dto.number_of_people;
 
     const { data, error } = await supabase
       .from('booking')
@@ -75,6 +79,7 @@ export class BookingService {
 
     if (uError) {
       this.logger.error(`Error updating booked_spots: ${uError.message}`);
+      await supabase.from('booking').delete().eq('id', data.id);
       throw new InternalServerErrorException('Error inesperado al actualizar los lugares reservados');
     }
 
@@ -109,23 +114,25 @@ export class BookingService {
       .update({ status: 'CANCELLED' })
       .eq('id', bookingId)
       .select('*')
-      .single();
+      .maybeSingle();
 
     if (uError) {
       this.logger.error(`Error cancelling booking: ${uError.message}`);
       throw new InternalServerErrorException('Error inesperado al cancelar la reserva');
     }
+    if (!data) throw new NotFoundException('Reserva no encontrada');
 
     const { data: session, error: sError } = await supabase
       .from('activity_session')
       .select('booked_spots')
       .eq('id', booking.activity_session_id)
-      .single();
+      .maybeSingle();
 
-    if (sError || !session) {
-      this.logger.error(`Error finding session after cancel: ${sError?.message}`);
+    if (sError) {
+      this.logger.error(`Error finding session after cancel: ${sError.message}`);
       throw new InternalServerErrorException('Error inesperado al actualizar los lugares');
     }
+    if (!session) throw new NotFoundException('Sesión de actividad no encontrada');
 
     const newSpots = Math.max(0, session.booked_spots - booking.number_of_people);
 
