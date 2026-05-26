@@ -147,35 +147,22 @@ export class ActivityService {
       .update(updates)
       .eq('id', activityId)
       .select('*')
-      .single();
+      .maybeSingle();
 
     if (error) {
       this.logger.error(`Error updating activity: ${error.message}`);
       throw new InternalServerErrorException('Error inesperado al actualizar la actividad');
     }
 
+    if (!data) throw new NotFoundException('Actividad no encontrada');
+
     return this.toActivityDto(data);
   }
 
   async renew(activityId: number, userId: string): Promise<ActivityDto> {
-    const supabase = this.supabaseService.getAdminClient();
-
     const activity = await this.verifyOwnership(activityId, userId);
-
     await this.createSessionsForActivity(activity.id, activity.days_of_week, activity.starting_hour);
-
-    const { data, error } = await supabase
-      .from('activity')
-      .select('*')
-      .eq('id', activityId)
-      .single();
-
-    if (error) {
-      this.logger.error(`Error fetching activity after renew: ${error.message}`);
-      throw new InternalServerErrorException('Error inesperado al renovar la actividad');
-    }
-
-    return this.toActivityDto(data);
+    return this.toActivityDto(activity);
   }
 
   async deactivate(activityId: number, userId: string): Promise<ActivityDto> {
@@ -245,10 +232,13 @@ export class ActivityService {
       .from('business')
       .select('verified')
       .eq('id', activity.business_id)
-      .single();
+      .maybeSingle();
 
     if (bError) {
       this.logger.error(`Error finding business: ${bError.message}`);
+      throw new InternalServerErrorException('Error inesperado al verificar el negocio');
+    }
+    if (!business) {
       throw new InternalServerErrorException('Error inesperado al verificar el negocio');
     }
     if (!business.verified) {
@@ -293,7 +283,11 @@ export class ActivityService {
       .eq('id', activity.business_id)
       .single();
 
-    if (bError || !business) {
+    if (bError) {
+      this.logger.error(`Error finding business for ownership check: ${bError.message}`);
+      throw new InternalServerErrorException('Error inesperado al verificar el propietario');
+    }
+    if (!business) {
       throw new InternalServerErrorException('Error inesperado al verificar el propietario');
     }
     if (business.app_user_id !== userId) {
@@ -309,12 +303,12 @@ export class ActivityService {
     startingHour: string,
   ): Promise<void> {
     const supabase = this.supabaseService.getAdminClient();
-    const dates = this.generateSessionDates(daysOfWeek, startingHour);
-    if (dates.length === 0) return;
+    const datetimes = this.generateSessionDates(daysOfWeek, startingHour);
+    if (datetimes.length === 0) return;
 
-    const sessions = dates.map((date) => ({
+    const sessions = datetimes.map((datetime) => ({
       activity_id: activityId,
-      datetime: date.toISOString(),
+      datetime,
     }));
 
     const { error } = await supabase
@@ -327,26 +321,27 @@ export class ActivityService {
     }
   }
 
-  private generateSessionDates(daysOfWeek: number[], startingHour: string): Date[] {
-    const dates: Date[] = [];
+  private generateSessionDates(daysOfWeek: number[], startingHour: string): string[] {
+    const dates: string[] = [];
     const now = new Date();
     const end = new Date();
     end.setDate(now.getDate() + 30);
 
-    const [hours, minutes] = startingHour.split(':').map(Number);
-
     const current = new Date(now);
-    current.setHours(0, 0, 0, 0);
+    current.setUTCHours(0, 0, 0, 0);
 
     while (current <= end) {
-      if (daysOfWeek.includes(current.getDay())) {
-        const sessionDate = new Date(current);
-        sessionDate.setHours(hours, minutes, 0, 0);
+      if (daysOfWeek.includes(current.getUTCDay())) {
+        const year = current.getUTCFullYear();
+        const month = String(current.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(current.getUTCDate()).padStart(2, '0');
+        const datetimeStr = `${year}-${month}-${day}T${startingHour}:00.000Z`;
+        const sessionDate = new Date(datetimeStr);
         if (sessionDate > now) {
-          dates.push(sessionDate);
+          dates.push(datetimeStr);
         }
       }
-      current.setDate(current.getDate() + 1);
+      current.setUTCDate(current.getUTCDate() + 1);
     }
 
     return dates;
