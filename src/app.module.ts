@@ -10,6 +10,7 @@ import { NewsletterModule } from './newsletter/newsletter.module';
 import { BusinessModule } from './business/business.module';
 import { AdminModule } from './admin/admin.module';
 import { ActivityModule } from './activity/activity.module';
+import { BookingModule } from './booking/booking.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ActivityModule } from './activity/activity.module';
     BusinessModule,
     AdminModule,
     ActivityModule,
+    BookingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
