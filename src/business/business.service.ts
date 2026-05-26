@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -104,6 +105,43 @@ export class BusinessService {
     return this.toBusinessDto(data);
   }
 
+  async findAll(): Promise<BusinessDto[]> {
+    const supabase = this.supabaseService.getAdminClient();
+
+    const { data, error } = await supabase
+      .from('business')
+      .select('*')
+      .eq('verified', true)
+      .order('id', { ascending: true });
+
+    if (error) {
+      this.logger.error(`Error finding all businesses: ${error.message}`);
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener los negocios',
+      );
+    }
+
+    return (data ?? []).map((b) => this.toBusinessDto(b));
+  }
+
+  async findAllAdmin(): Promise<BusinessDto[]> {
+    const supabase = this.supabaseService.getAdminClient();
+
+    const { data, error } = await supabase
+      .from('business')
+      .select('*')
+      .order('id', { ascending: true });
+
+    if (error) {
+      this.logger.error(`Error finding all businesses (admin): ${error.message}`);
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener los negocios',
+      );
+    }
+
+    return (data ?? []).map((b) => this.toBusinessDto(b));
+  }
+
   async findPublicById(businessId: number): Promise<BusinessDto> {
     const supabase = this.supabaseService.getAdminClient();
 
@@ -129,14 +167,11 @@ export class BusinessService {
   async verifyBusiness(businessId: number): Promise<BusinessDto> {
     const supabase = this.supabaseService.getAdminClient();
 
-    const updates: Partial<Business> = {};
-    updates.verified = true;
-
     const { data, error } = await supabase
       .from('business')
-      .update(updates)
-      .select('*')
+      .update({ verified: true })
       .eq('id', businessId)
+      .select('*')
       .maybeSingle();
 
     if (error) {
@@ -147,6 +182,113 @@ export class BusinessService {
     }
 
     if (!data) throw new NotFoundException('Negocio no encontrado');
+
+    return this.toBusinessDto(data);
+  }
+
+  async deactivateBusiness(businessId: number): Promise<BusinessDto> {
+    const supabase = this.supabaseService.getAdminClient();
+
+    const { data: business, error: bError } = await supabase
+      .from('business')
+      .select('*')
+      .eq('id', businessId)
+      .maybeSingle();
+
+    if (bError) {
+      this.logger.error(`Error finding business: ${bError.message}`);
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener el negocio',
+      );
+    }
+    if (!business) throw new NotFoundException('Negocio no encontrado');
+
+    const { data: activities, error: aError } = await supabase
+      .from('activity')
+      .select('id')
+      .eq('business_id', businessId)
+      .eq('is_active', true);
+
+    if (aError) {
+      this.logger.error(`Error finding activities: ${aError.message}`);
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener las actividades',
+      );
+    }
+
+    const activityIds = (activities ?? []).map((a) => a.id);
+
+    if (activityIds.length > 0) {
+      const now = new Date().toISOString();
+
+      const { data: sessions, error: sError } = await supabase
+        .from('activity_session')
+        .select('id')
+        .in('activity_id', activityIds)
+        .gt('datetime', now);
+
+      if (sError) {
+        this.logger.error(`Error finding sessions: ${sError.message}`);
+        throw new InternalServerErrorException(
+          'Error inesperado al obtener las sesiones',
+        );
+      }
+
+      const sessionIds = (sessions ?? []).map((s) => s.id);
+
+      if (sessionIds.length > 0) {
+        const { error: cbError } = await supabase
+          .from('booking')
+          .update({ status: 'CANCELLED' })
+          .in('activity_session_id', sessionIds)
+          .eq('status', 'PENDING');
+
+        if (cbError) {
+          this.logger.error(`Error cancelling bookings: ${cbError.message}`);
+          throw new InternalServerErrorException(
+            'Error inesperado al cancelar las reservas',
+          );
+        }
+
+        const { error: dsError } = await supabase
+          .from('activity_session')
+          .delete()
+          .in('id', sessionIds);
+
+        if (dsError) {
+          this.logger.error(`Error deleting sessions: ${dsError.message}`);
+          throw new InternalServerErrorException(
+            'Error inesperado al eliminar las sesiones',
+          );
+        }
+      }
+
+      const { error: daError } = await supabase
+        .from('activity')
+        .update({ is_active: false })
+        .in('id', activityIds);
+
+      if (daError) {
+        this.logger.error(`Error deactivating activities: ${daError.message}`);
+        throw new InternalServerErrorException(
+          'Error inesperado al desactivar las actividades',
+        );
+      }
+    }
+
+    const { data, error } = await supabase
+      .from('business')
+      .update({ verified: false })
+      .eq('id', businessId)
+      .select('*')
+      .single();
+
+    if (error) {
+      this.logger.error(`Error deactivating business: ${error.message}`);
+      throw new InternalServerErrorException(
+        'Error inesperado al desactivar el negocio',
+      );
+    }
 
     return this.toBusinessDto(data);
   }

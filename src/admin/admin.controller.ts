@@ -44,7 +44,7 @@ export class AdminController {
   @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
   @ApiForbiddenResponse({ description: 'Sin permisos' })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
-  async findAll(): Promise<AppUserDto[]> {
+  async findAllUsers(): Promise<AppUserDto[]> {
     return this.appUserService.findAll();
   }
 
@@ -62,6 +62,16 @@ export class AdminController {
     return this.appUserService.updateGlobalRole(id, dto.role);
   }
 
+  @Get('/business')
+  @ApiOperation({ summary: 'Listar todos los negocios (SUPER_USER)' })
+  @ApiOkResponse({ type: BusinessDto, isArray: true })
+  @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
+  @ApiForbiddenResponse({ description: 'Sin permisos' })
+  @ApiInternalServerErrorResponse({ description: 'Error interno' })
+  async findAllBusinesses(): Promise<BusinessDto[]> {
+    return this.businessService.findAllAdmin();
+  }
+
   @Patch('/business/:id/verify')
   @ApiOperation({ summary: 'Verificar un negocio (SUPER_USER)' })
   @ApiOkResponse({ type: BusinessDto })
@@ -73,5 +83,18 @@ export class AdminController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<BusinessDto> {
     return this.businessService.verifyBusiness(id);
+  }
+
+  @Patch('/business/:id/deactivate')
+  @ApiOperation({ summary: 'Desactivar un negocio y hacer cascade (SUPER_USER)' })
+  @ApiOkResponse({ type: BusinessDto })
+  @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
+  @ApiForbiddenResponse({ description: 'Sin permisos' })
+  @ApiNotFoundResponse({ description: 'Negocio no encontrado' })
+  @ApiInternalServerErrorResponse({ description: 'Error interno' })
+  async deactivateBusiness(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<BusinessDto> {
+    return this.businessService.deactivateBusiness(id);
   }
 }

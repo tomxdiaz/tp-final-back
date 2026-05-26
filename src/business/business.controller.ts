@@ -37,11 +37,9 @@ export class BusinessController {
   @Post()
   @ApiBearerAuth()
   @UseGuards(SupabaseAuthGuard)
-  @ApiOperation({ summary: 'Crear perfil de negocio (USER o SUPER_USER)' })
+  @ApiOperation({ summary: 'Crear perfil de negocio' })
   @ApiCreatedResponse({ type: BusinessDto })
-  @ApiConflictResponse({
-    description: 'Ya existe un perfil de negocio para este usuario',
-  })
+  @ApiConflictResponse({ description: 'Ya existe un perfil de negocio para este usuario' })
   @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
   async create(
@@ -49,6 +47,14 @@ export class BusinessController {
     @Body() dto: CreateBusinessDto,
   ): Promise<BusinessDto> {
     return this.businessService.create(appUser.id, dto);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Listar todos los negocios verificados (público)' })
+  @ApiOkResponse({ type: BusinessDto, isArray: true })
+  @ApiInternalServerErrorResponse({ description: 'Error interno' })
+  async findAll(): Promise<BusinessDto[]> {
+    return this.businessService.findAll();
   }
 
   @Get('me')
@@ -79,7 +85,7 @@ export class BusinessController {
   }
 
   @Get(':businessId')
-  @ApiOperation({ summary: 'Perfil público de un negocio (sin auth)' })
+  @ApiOperation({ summary: 'Perfil público de un negocio verificado' })
   @ApiOkResponse({ type: BusinessDto })
   @ApiNotFoundResponse({ description: 'Negocio no encontrado' })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
