@@ -11,6 +11,7 @@ import { BusinessModule } from './business/business.module';
 import { AdminModule } from './admin/admin.module';
 import { ActivityModule } from './activity/activity.module';
 import { BookingModule } from './booking/booking.module';
+import { CategoryModule } from './category/category.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { BookingModule } from './booking/booking.module';
     AdminModule,
     ActivityModule,
     BookingModule,
+    CategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
