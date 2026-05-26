@@ -38,66 +38,63 @@ export type Database = {
         Row: {
           base_price: number
           business_id: number
-          category: string
-          country: string
+          category_id: number
           created_at: string
           currency: string
+          days_of_week: number[]
           description: string | null
           difficulty: Database["public"]["Enums"]["difficulty_level"] | null
           duration_minutes: number | null
           id: number
           is_active: boolean
           latitude: number | null
-          location_name: string | null
           longitude: number | null
           max_participants: number | null
           meeting_point: string | null
           min_age: number | null
-          province: string | null
+          starting_hour: string
           title: string
           updated_at: string
         }
         Insert: {
           base_price: number
           business_id: number
-          category: string
-          country?: string
+          category_id: number
           created_at?: string
           currency?: string
+          days_of_week: number[]
           description?: string | null
           difficulty?: Database["public"]["Enums"]["difficulty_level"] | null
           duration_minutes?: number | null
           id?: number
           is_active?: boolean
           latitude?: number | null
-          location_name?: string | null
           longitude?: number | null
           max_participants?: number | null
           meeting_point?: string | null
           min_age?: number | null
-          province?: string | null
+          starting_hour: string
           title: string
           updated_at?: string
         }
         Update: {
           base_price?: number
           business_id?: number
-          category?: string
-          country?: string
+          category_id?: number
           created_at?: string
           currency?: string
+          days_of_week?: number[]
           description?: string | null
           difficulty?: Database["public"]["Enums"]["difficulty_level"] | null
           duration_minutes?: number | null
           id?: number
           is_active?: boolean
           latitude?: number | null
-          location_name?: string | null
           longitude?: number | null
           max_participants?: number | null
           meeting_point?: string | null
           min_age?: number | null
-          province?: string | null
+          starting_hour?: string
           title?: string
           updated_at?: string
         }
@@ -109,39 +106,11 @@ export type Database = {
             referencedRelation: "business"
             referencedColumns: ["id"]
           },
-        ]
-      }
-      activity_schedule_rule: {
-        Row: {
-          activity_id: number
-          amount_of_days: number
-          created_at: string
-          days_of_week: number[]
-          id: number
-          updated_at: string
-        }
-        Insert: {
-          activity_id: number
-          amount_of_days: number
-          created_at?: string
-          days_of_week: number[]
-          id?: number
-          updated_at?: string
-        }
-        Update: {
-          activity_id?: number
-          amount_of_days?: number
-          created_at?: string
-          days_of_week?: number[]
-          id?: number
-          updated_at?: string
-        }
-        Relationships: [
           {
-            foreignKeyName: "activity_schedule_rule_activity_id_fkey"
-            columns: ["activity_id"]
+            foreignKeyName: "activity_category_id_fkey"
+            columns: ["category_id"]
             isOneToOne: false
-            referencedRelation: "activity"
+            referencedRelation: "category"
             referencedColumns: ["id"]
           },
         ]
@@ -153,7 +122,6 @@ export type Database = {
           created_at: string
           datetime: string
           id: number
-          schedule_rule_id: number | null
           status: Database["public"]["Enums"]["session_status"]
           updated_at: string
         }
@@ -163,7 +131,6 @@ export type Database = {
           created_at?: string
           datetime: string
           id?: number
-          schedule_rule_id?: number | null
           status?: Database["public"]["Enums"]["session_status"]
           updated_at?: string
         }
@@ -173,7 +140,6 @@ export type Database = {
           created_at?: string
           datetime?: string
           id?: number
-          schedule_rule_id?: number | null
           status?: Database["public"]["Enums"]["session_status"]
           updated_at?: string
         }
@@ -183,13 +149,6 @@ export type Database = {
             columns: ["activity_id"]
             isOneToOne: false
             referencedRelation: "activity"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "activity_session_schedule_rule_id_fkey"
-            columns: ["schedule_rule_id"]
-            isOneToOne: false
-            referencedRelation: "activity_schedule_rule"
             referencedColumns: ["id"]
           },
         ]
@@ -321,6 +280,21 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      category: {
+        Row: {
+          id: number
+          name: string
+        }
+        Insert: {
+          id?: number
+          name: string
+        }
+        Update: {
+          id?: number
+          name?: string
+        }
+        Relationships: []
       }
       newsletter: {
         Row: {

@@ -106,7 +106,8 @@ export class AppUserService {
       );
     }
 
-    if (!data) throw new NotFoundException('Usuario a actualizar no encontrado');
+    if (!data)
+      throw new NotFoundException('Usuario a actualizar no encontrado');
 
     return this.toAppUserDto(data);
   }
@@ -114,7 +115,8 @@ export class AppUserService {
   async updateMe(userId: string, dto: UpdateMeDto): Promise<AppUserDto> {
     const supabase = this.supabaseService.getAdminClient();
 
-    const updates: { first_name?: string; last_name?: string; phone?: string } = {};
+    const updates: { first_name?: string; last_name?: string; phone?: string } =
+      {};
     if (dto.first_name !== undefined) updates.first_name = dto.first_name;
     if (dto.last_name !== undefined) updates.last_name = dto.last_name;
     if (dto.phone !== undefined) updates.phone = dto.phone;
@@ -128,29 +130,14 @@ export class AppUserService {
 
     if (error) {
       this.logger.error(`Error updating app_user: ${error.message}`);
-      throw new InternalServerErrorException('Error inesperado al actualizar el perfil');
+      throw new InternalServerErrorException(
+        'Error inesperado al actualizar el perfil',
+      );
     }
 
     if (!data) throw new NotFoundException('Usuario no encontrado');
 
     return this.toAppUserDto(data);
-  }
-
-  async setBlockedStatus(userId: string, blocked: boolean): Promise<AppUserDto> {
-    const supabase = this.supabaseService.getAdminClient();
-
-    const { error } = await supabase.auth.admin.updateUserById(userId, {
-      ban_duration: blocked ? '876000h' : 'none',
-    });
-
-    if (error) {
-      this.logger.error(`Error blocking user: ${error.message}`);
-      throw new InternalServerErrorException(
-        'Error inesperado al actualizar el estado del usuario',
-      );
-    }
-
-    return this.findById(userId);
   }
 
   toAppUserDto(appUser: AppUser): AppUserDto {

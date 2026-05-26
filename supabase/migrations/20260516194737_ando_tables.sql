@@ -32,16 +32,20 @@ create table if not exists public.business (
   updated_at    timestamptz not null default now()
 );
 
+-- ── Category ────────────────────────────────────────────────────
+create table if not exists public.category (
+  id   serial primary key,
+  name text not null unique
+);
+
 -- ── Activity ─────────────────────────────────────────────────────
 create table if not exists public.activity (
   id               serial primary key,
   business_id      integer not null references public.business(id),
   title            text not null,
   description      text,
-  category         text not null,
-  location_name    text,
-  province         text,
-  country          text not null default 'Argentina',
+  category_id      integer not null references public.category(id),
+  starting_hour    time not null,
   meeting_point    text,
   latitude         numeric(9,6),
   longitude        numeric(9,6),
@@ -49,19 +53,10 @@ create table if not exists public.activity (
   duration_minutes int,
   base_price       numeric(10,2) not null check (base_price >= 0),
   currency         text not null default 'ARS',
+  days_of_week     int[] not null,
   min_age          int,
   max_participants int,
   is_active        boolean not null default true,
-  created_at       timestamptz not null default now(),
-  updated_at       timestamptz not null default now()
-);
-
--- ── Activity schedule rule ────────────────────────────────────────
-create table if not exists public.activity_schedule_rule (
-  id               serial primary key,
-  activity_id      integer not null references public.activity(id),
-  amount_of_days   int not null,
-  days_of_week     int[] not null,
   created_at       timestamptz not null default now(),
   updated_at       timestamptz not null default now()
 );
@@ -70,13 +65,12 @@ create table if not exists public.activity_schedule_rule (
 create table if not exists public.activity_session (
   id               serial primary key,
   activity_id      integer not null references public.activity(id),
-  schedule_rule_id integer references public.activity_schedule_rule(id),
-  datetime   timestamptz not null,
+  datetime         timestamptz not null,
   booked_spots     int not null default 0 check (booked_spots >= 0),
   status           public.session_status not null default 'AVAILABLE',
   created_at       timestamptz not null default now(),
   updated_at       timestamptz not null default now(),
-  constraint uq_session unique (activity_id, schedule_rule_id, datetime)
+  constraint uq_session unique (activity_id, datetime)
 );
 
 -- ── Booking ───────────────────────────────────────────────────────
