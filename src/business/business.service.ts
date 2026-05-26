@@ -132,7 +132,9 @@ export class BusinessService {
       .order('id', { ascending: true });
 
     if (error) {
-      this.logger.error(`Error finding all businesses (admin): ${error.message}`);
+      this.logger.error(
+        `Error finding all businesses (admin): ${error.message}`,
+      );
       throw new InternalServerErrorException(
         'Error inesperado al obtener los negocios',
       );
@@ -240,7 +242,7 @@ export class BusinessService {
           .from('booking')
           .update({ status: 'CANCELLED' })
           .in('activity_session_id', sessionIds)
-          .eq('status', 'PENDING');
+          .neq('status', 'CANCELLED');
 
         if (cbError) {
           this.logger.error(`Error cancelling bookings: ${cbError.message}`);

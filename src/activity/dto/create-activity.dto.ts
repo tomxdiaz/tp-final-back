@@ -26,11 +26,14 @@ export class CreateActivityDto {
 
   @ApiProperty({ example: 1 })
   @IsInt()
+  @Min(1)
   category_id!: number;
 
   @ApiProperty({ example: '09:00', description: 'Formato HH:MM' })
   @IsString()
-  @Matches(/^\d{2}:\d{2}$/, { message: 'starting_hour debe tener formato HH:MM' })
+  @Matches(/^\d{2}:\d{2}$/, {
+    message: 'starting_hour debe tener formato HH:MM',
+  })
   starting_hour!: string;
 
   @ApiPropertyOptional({ example: 'Acceso norte del parque' })

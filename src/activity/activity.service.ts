@@ -31,13 +31,19 @@ export class ActivityService {
 
     if (bError) {
       this.logger.error(`Error finding business: ${bError.message}`);
-      throw new InternalServerErrorException('Error inesperado al verificar el negocio');
+      throw new InternalServerErrorException(
+        'Error inesperado al verificar el negocio',
+      );
     }
     if (!business) {
-      throw new BadRequestException('Necesitás tener un perfil de negocio para crear actividades');
+      throw new BadRequestException(
+        'Necesitás tener un perfil de negocio para crear actividades',
+      );
     }
     if (!business.verified) {
-      throw new BadRequestException('Tu perfil de negocio debe estar verificado para crear actividades');
+      throw new BadRequestException(
+        'Tu perfil de negocio debe estar verificado para crear actividades',
+      );
     }
 
     const { data, error } = await supabase
@@ -64,10 +70,16 @@ export class ActivityService {
 
     if (error) {
       this.logger.error(`Error creating activity: ${error.message}`);
-      throw new InternalServerErrorException('Error inesperado al crear la actividad');
+      throw new InternalServerErrorException(
+        'Error inesperado al crear la actividad',
+      );
     }
 
-    await this.createSessionsForActivity(data.id, data.days_of_week, data.starting_hour);
+    await this.createSessionsForActivity(
+      data.id,
+      data.days_of_week,
+      data.starting_hour,
+    );
 
     return this.toActivityDto(data);
   }
@@ -82,7 +94,9 @@ export class ActivityService {
 
     if (bError) {
       this.logger.error(`Error finding verified businesses: ${bError.message}`);
-      throw new InternalServerErrorException('Error inesperado al obtener las actividades');
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener las actividades',
+      );
     }
 
     const ids = (businesses ?? []).map((b) => b.id);
@@ -97,7 +111,9 @@ export class ActivityService {
 
     if (error) {
       this.logger.error(`Error finding activities: ${error.message}`);
-      throw new InternalServerErrorException('Error inesperado al obtener las actividades');
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener las actividades',
+      );
     }
 
     return (data ?? []).map((a) => this.toActivityDto(a));
@@ -114,14 +130,20 @@ export class ActivityService {
 
     if (error) {
       this.logger.error(`Error finding activity by id: ${error.message}`);
-      throw new InternalServerErrorException('Error inesperado al obtener la actividad');
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener la actividad',
+      );
     }
     if (!data) throw new NotFoundException('Actividad no encontrada');
 
     return this.toActivityDto(data);
   }
 
-  async update(activityId: number, userId: string, dto: UpdateActivityDto): Promise<ActivityDto> {
+  async update(
+    activityId: number,
+    userId: string,
+    dto: UpdateActivityDto,
+  ): Promise<ActivityDto> {
     const supabase = this.supabaseService.getAdminClient();
 
     await this.verifyOwnership(activityId, userId);
@@ -130,17 +152,21 @@ export class ActivityService {
     if (dto.title !== undefined) updates.title = dto.title;
     if (dto.description !== undefined) updates.description = dto.description;
     if (dto.category_id !== undefined) updates.category_id = dto.category_id;
-    if (dto.starting_hour !== undefined) updates.starting_hour = dto.starting_hour;
-    if (dto.meeting_point !== undefined) updates.meeting_point = dto.meeting_point;
+    if (dto.starting_hour !== undefined)
+      updates.starting_hour = dto.starting_hour;
+    if (dto.meeting_point !== undefined)
+      updates.meeting_point = dto.meeting_point;
     if (dto.latitude !== undefined) updates.latitude = dto.latitude;
     if (dto.longitude !== undefined) updates.longitude = dto.longitude;
     if (dto.difficulty !== undefined) updates.difficulty = dto.difficulty;
-    if (dto.duration_minutes !== undefined) updates.duration_minutes = dto.duration_minutes;
+    if (dto.duration_minutes !== undefined)
+      updates.duration_minutes = dto.duration_minutes;
     if (dto.base_price !== undefined) updates.base_price = dto.base_price;
     if (dto.currency !== undefined) updates.currency = dto.currency;
     if (dto.days_of_week !== undefined) updates.days_of_week = dto.days_of_week;
     if (dto.min_age !== undefined) updates.min_age = dto.min_age;
-    if (dto.max_participants !== undefined) updates.max_participants = dto.max_participants;
+    if (dto.max_participants !== undefined)
+      updates.max_participants = dto.max_participants;
 
     const { data, error } = await supabase
       .from('activity')
@@ -151,7 +177,9 @@ export class ActivityService {
 
     if (error) {
       this.logger.error(`Error updating activity: ${error.message}`);
-      throw new InternalServerErrorException('Error inesperado al actualizar la actividad');
+      throw new InternalServerErrorException(
+        'Error inesperado al actualizar la actividad',
+      );
     }
 
     if (!data) throw new NotFoundException('Actividad no encontrada');
@@ -161,7 +189,11 @@ export class ActivityService {
 
   async renew(activityId: number, userId: string): Promise<ActivityDto> {
     const activity = await this.verifyOwnership(activityId, userId);
-    await this.createSessionsForActivity(activity.id, activity.days_of_week, activity.starting_hour);
+    await this.createSessionsForActivity(
+      activity.id,
+      activity.days_of_week,
+      activity.starting_hour,
+    );
     return this.toActivityDto(activity);
   }
 
@@ -180,7 +212,9 @@ export class ActivityService {
 
     if (sError) {
       this.logger.error(`Error finding sessions: ${sError.message}`);
-      throw new InternalServerErrorException('Error inesperado al obtener las sesiones');
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener las sesiones',
+      );
     }
 
     const sessionIds = (sessions ?? []).map((s) => s.id);
@@ -190,11 +224,13 @@ export class ActivityService {
         .from('booking')
         .update({ status: 'CANCELLED' })
         .in('activity_session_id', sessionIds)
-        .eq('status', 'PENDING');
+        .neq('status', 'CANCELLED');
 
       if (cbError) {
         this.logger.error(`Error cancelling bookings: ${cbError.message}`);
-        throw new InternalServerErrorException('Error inesperado al cancelar las reservas');
+        throw new InternalServerErrorException(
+          'Error inesperado al cancelar las reservas',
+        );
       }
 
       const { error: dsError } = await supabase
@@ -204,7 +240,9 @@ export class ActivityService {
 
       if (dsError) {
         this.logger.error(`Error deleting sessions: ${dsError.message}`);
-        throw new InternalServerErrorException('Error inesperado al eliminar las sesiones');
+        throw new InternalServerErrorException(
+          'Error inesperado al eliminar las sesiones',
+        );
       }
     }
 
@@ -213,12 +251,16 @@ export class ActivityService {
       .update({ is_active: false })
       .eq('id', activityId)
       .select('*')
-      .single();
+      .maybeSingle();
 
     if (error) {
       this.logger.error(`Error deactivating activity: ${error.message}`);
-      throw new InternalServerErrorException('Error inesperado al desactivar la actividad');
+      throw new InternalServerErrorException(
+        'Error inesperado al desactivar la actividad',
+      );
     }
+
+    if (!data) throw new NotFoundException('Actividad no encontrada');
 
     return this.toActivityDto(data);
   }
@@ -236,13 +278,19 @@ export class ActivityService {
 
     if (bError) {
       this.logger.error(`Error finding business: ${bError.message}`);
-      throw new InternalServerErrorException('Error inesperado al verificar el negocio');
+      throw new InternalServerErrorException(
+        'Error inesperado al verificar el negocio',
+      );
     }
     if (!business) {
-      throw new InternalServerErrorException('Error inesperado al verificar el negocio');
+      throw new InternalServerErrorException(
+        'Error inesperado al verificar el negocio',
+      );
     }
     if (!business.verified) {
-      throw new BadRequestException('El perfil de negocio debe estar verificado para activar actividades');
+      throw new BadRequestException(
+        'El perfil de negocio debe estar verificado para activar actividades',
+      );
     }
 
     const { data, error } = await supabase
@@ -250,19 +298,30 @@ export class ActivityService {
       .update({ is_active: true })
       .eq('id', activityId)
       .select('*')
-      .single();
+      .maybeSingle();
 
     if (error) {
       this.logger.error(`Error activating activity: ${error.message}`);
-      throw new InternalServerErrorException('Error inesperado al activar la actividad');
+      throw new InternalServerErrorException(
+        'Error inesperado al activar la actividad',
+      );
     }
 
-    await this.createSessionsForActivity(data.id, data.days_of_week, data.starting_hour);
+    if (!data) throw new NotFoundException('Actividad no encontrada');
+
+    await this.createSessionsForActivity(
+      data.id,
+      data.days_of_week,
+      data.starting_hour,
+    );
 
     return this.toActivityDto(data);
   }
 
-  private async verifyOwnership(activityId: number, userId: string): Promise<Activity> {
+  private async verifyOwnership(
+    activityId: number,
+    userId: string,
+  ): Promise<Activity> {
     const supabase = this.supabaseService.getAdminClient();
 
     const { data: activity, error } = await supabase
@@ -273,7 +332,9 @@ export class ActivityService {
 
     if (error) {
       this.logger.error(`Error finding activity: ${error.message}`);
-      throw new InternalServerErrorException('Error inesperado al obtener la actividad');
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener la actividad',
+      );
     }
     if (!activity) throw new NotFoundException('Actividad no encontrada');
 
@@ -281,17 +342,25 @@ export class ActivityService {
       .from('business')
       .select('app_user_id')
       .eq('id', activity.business_id)
-      .single();
+      .maybeSingle();
 
     if (bError) {
-      this.logger.error(`Error finding business for ownership check: ${bError.message}`);
-      throw new InternalServerErrorException('Error inesperado al verificar el propietario');
+      this.logger.error(
+        `Error finding business for ownership check: ${bError.message}`,
+      );
+      throw new InternalServerErrorException(
+        'Error inesperado al verificar el propietario',
+      );
     }
     if (!business) {
-      throw new InternalServerErrorException('Error inesperado al verificar el propietario');
+      throw new InternalServerErrorException(
+        'Error inesperado al verificar el propietario',
+      );
     }
     if (business.app_user_id !== userId) {
-      throw new ForbiddenException('No tenés permiso para modificar esta actividad');
+      throw new ForbiddenException(
+        'No tenés permiso para modificar esta actividad',
+      );
     }
 
     return activity;
@@ -311,21 +380,27 @@ export class ActivityService {
       datetime,
     }));
 
-    const { error } = await supabase
-      .from('activity_session')
-      .upsert(sessions, { onConflict: 'activity_id,datetime', ignoreDuplicates: true });
+    const { error } = await supabase.from('activity_session').upsert(sessions, {
+      onConflict: 'activity_id,datetime',
+      ignoreDuplicates: true,
+    });
 
     if (error) {
       this.logger.error(`Error creating sessions: ${error.message}`);
-      throw new InternalServerErrorException('Error inesperado al crear las sesiones');
+      throw new InternalServerErrorException(
+        'Error inesperado al crear las sesiones',
+      );
     }
   }
 
-  private generateSessionDates(daysOfWeek: number[], startingHour: string): string[] {
+  private generateSessionDates(
+    daysOfWeek: number[],
+    startingHour: string,
+  ): string[] {
     const dates: string[] = [];
     const now = new Date();
     const end = new Date();
-    end.setDate(now.getDate() + 30);
+    end.setUTCDate(now.getUTCDate() + 30);
 
     const current = new Date(now);
     current.setUTCHours(0, 0, 0, 0);
@@ -335,7 +410,8 @@ export class ActivityService {
         const year = current.getUTCFullYear();
         const month = String(current.getUTCMonth() + 1).padStart(2, '0');
         const day = String(current.getUTCDate()).padStart(2, '0');
-        const datetimeStr = `${year}-${month}-${day}T${startingHour}:00.000Z`;
+        const hour = startingHour.substring(0, 5);
+        const datetimeStr = `${year}-${month}-${day}T${hour}:00.000Z`;
         const sessionDate = new Date(datetimeStr);
         if (sessionDate > now) {
           dates.push(datetimeStr);
