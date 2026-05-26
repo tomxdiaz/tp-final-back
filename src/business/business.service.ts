@@ -1,6 +1,5 @@
 import {
   ConflictException,
-  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -281,7 +280,7 @@ export class BusinessService {
       .update({ verified: false })
       .eq('id', businessId)
       .select('*')
-      .single();
+      .maybeSingle();
 
     if (error) {
       this.logger.error(`Error deactivating business: ${error.message}`);
@@ -289,6 +288,8 @@ export class BusinessService {
         'Error inesperado al desactivar el negocio',
       );
     }
+
+    if (!data) throw new NotFoundException('Negocio no encontrado');
 
     return this.toBusinessDto(data);
   }
