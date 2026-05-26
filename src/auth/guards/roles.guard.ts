@@ -8,7 +8,7 @@ import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 import type { Tables } from '../../supabase/database.types';
 import { ROLES_KEY } from '../decorators/roles.decorator';
-import type { AppRole } from '../../utils/enums/roles';
+import { AppRole } from '../../utils/enums/roles';
 
 type AppUser = Tables<'app_user'>;
 
@@ -36,6 +36,8 @@ export class RolesGuard implements CanActivate {
     if (!currentRole) {
       throw new ForbiddenException('Falta el usuario autenticado');
     }
+
+    if (currentRole === AppRole.SUPER_USER) return true;
 
     if (!requiredRoles.includes(currentRole)) {
       throw new ForbiddenException(

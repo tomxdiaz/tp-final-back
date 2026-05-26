@@ -4,201 +4,506 @@ export type Json =
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[]
+  | Json[];
 
 export type Database = {
   graphql_public: {
     Tables: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Views: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Functions: {
       graphql: {
         Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
+          extensions?: Json;
+          operationName?: string;
+          query?: string;
+          variables?: Json;
+        };
+        Returns: Json;
+      };
+    };
     Enums: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     CompositeTypes: {
-      [_ in never]: never
-    }
-  }
+      [_ in never]: never;
+    };
+  };
   public: {
     Tables: {
+      activity: {
+        Row: {
+          base_price: number;
+          business_id: number;
+          category_id: number;
+          created_at: string;
+          currency: string;
+          days_of_week: number[];
+          description: string | null;
+          difficulty: Database['public']['Enums']['difficulty_level'] | null;
+          duration_minutes: number | null;
+          id: number;
+          is_active: boolean;
+          latitude: number | null;
+          longitude: number | null;
+          max_participants: number | null;
+          meeting_point: string | null;
+          min_age: number | null;
+          starting_hour: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          base_price: number;
+          business_id: number;
+          category_id: number;
+          created_at?: string;
+          currency?: string;
+          days_of_week: number[];
+          description?: string | null;
+          difficulty?: Database['public']['Enums']['difficulty_level'] | null;
+          duration_minutes?: number | null;
+          id?: number;
+          is_active?: boolean;
+          latitude?: number | null;
+          longitude?: number | null;
+          max_participants?: number | null;
+          meeting_point?: string | null;
+          min_age?: number | null;
+          starting_hour: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          base_price?: number;
+          business_id?: number;
+          category_id?: number;
+          created_at?: string;
+          currency?: string;
+          days_of_week?: number[];
+          description?: string | null;
+          difficulty?: Database['public']['Enums']['difficulty_level'] | null;
+          duration_minutes?: number | null;
+          id?: number;
+          is_active?: boolean;
+          latitude?: number | null;
+          longitude?: number | null;
+          max_participants?: number | null;
+          meeting_point?: string | null;
+          min_age?: number | null;
+          starting_hour?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'activity_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'business';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'activity_category_id_fkey';
+            columns: ['category_id'];
+            isOneToOne: false;
+            referencedRelation: 'category';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      activity_session: {
+        Row: {
+          activity_id: number;
+          booked_spots: number;
+          created_at: string;
+          datetime: string;
+          id: number;
+          status: Database['public']['Enums']['session_status'];
+          updated_at: string;
+        };
+        Insert: {
+          activity_id: number;
+          booked_spots?: number;
+          created_at?: string;
+          datetime: string;
+          id?: number;
+          status?: Database['public']['Enums']['session_status'];
+          updated_at?: string;
+        };
+        Update: {
+          activity_id?: number;
+          booked_spots?: number;
+          created_at?: string;
+          datetime?: string;
+          id?: number;
+          status?: Database['public']['Enums']['session_status'];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'activity_session_activity_id_fkey';
+            columns: ['activity_id'];
+            isOneToOne: false;
+            referencedRelation: 'activity';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       app_user: {
         Row: {
-          email: string
-          global_role: Database["public"]["Enums"]["global_role"]
-          id: string
-        }
+          created_at: string;
+          email: string;
+          first_name: string | null;
+          global_role: Database['public']['Enums']['global_role'];
+          id: string;
+          last_name: string | null;
+          phone: string | null;
+          updated_at: string;
+        };
         Insert: {
-          email: string
-          global_role?: Database["public"]["Enums"]["global_role"]
-          id: string
-        }
+          created_at?: string;
+          email: string;
+          first_name?: string | null;
+          global_role?: Database['public']['Enums']['global_role'];
+          id: string;
+          last_name?: string | null;
+          phone?: string | null;
+          updated_at?: string;
+        };
         Update: {
-          email?: string
-          global_role?: Database["public"]["Enums"]["global_role"]
-          id?: string
-        }
-        Relationships: []
-      }
+          created_at?: string;
+          email?: string;
+          first_name?: string | null;
+          global_role?: Database['public']['Enums']['global_role'];
+          id?: string;
+          last_name?: string | null;
+          phone?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      booking: {
+        Row: {
+          activity_session_id: number;
+          app_user_id: string;
+          created_at: string;
+          customer_notes: string | null;
+          id: number;
+          number_of_people: number;
+          status: Database['public']['Enums']['booking_status'];
+          total_price: number;
+          updated_at: string;
+        };
+        Insert: {
+          activity_session_id: number;
+          app_user_id: string;
+          created_at?: string;
+          customer_notes?: string | null;
+          id?: number;
+          number_of_people: number;
+          status?: Database['public']['Enums']['booking_status'];
+          total_price: number;
+          updated_at?: string;
+        };
+        Update: {
+          activity_session_id?: number;
+          app_user_id?: string;
+          created_at?: string;
+          customer_notes?: string | null;
+          id?: number;
+          number_of_people?: number;
+          status?: Database['public']['Enums']['booking_status'];
+          total_price?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'booking_activity_session_id_fkey';
+            columns: ['activity_session_id'];
+            isOneToOne: false;
+            referencedRelation: 'activity_session';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'booking_app_user_id_fkey';
+            columns: ['app_user_id'];
+            isOneToOne: false;
+            referencedRelation: 'app_user';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      business: {
+        Row: {
+          app_user_id: string;
+          business_name: string;
+          contact_email: string | null;
+          contact_phone: string | null;
+          created_at: string;
+          description: string | null;
+          id: number;
+          updated_at: string;
+          verified: boolean;
+        };
+        Insert: {
+          app_user_id: string;
+          business_name: string;
+          contact_email?: string | null;
+          contact_phone?: string | null;
+          created_at?: string;
+          description?: string | null;
+          id?: number;
+          updated_at?: string;
+          verified?: boolean;
+        };
+        Update: {
+          app_user_id?: string;
+          business_name?: string;
+          contact_email?: string | null;
+          contact_phone?: string | null;
+          created_at?: string;
+          description?: string | null;
+          id?: number;
+          updated_at?: string;
+          verified?: boolean;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'business_app_user_id_fkey';
+            columns: ['app_user_id'];
+            isOneToOne: true;
+            referencedRelation: 'app_user';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      category: {
+        Row: {
+          id: number;
+          name: string;
+        };
+        Insert: {
+          id?: number;
+          name: string;
+        };
+        Update: {
+          id?: number;
+          name?: string;
+        };
+        Relationships: [];
+      };
       newsletter: {
         Row: {
-          email: string
-          id: string
-        }
+          email: string;
+          id: string;
+        };
         Insert: {
-          email: string
-          id?: string
-        }
+          email: string;
+          id?: string;
+        };
         Update: {
-          email?: string
-          id?: string
-        }
-        Relationships: []
-      }
-    }
+          email?: string;
+          id?: string;
+        };
+        Relationships: [];
+      };
+      review: {
+        Row: {
+          activity_id: number;
+          app_user_id: string;
+          booking_id: number;
+          comment: string | null;
+          created_at: string;
+          id: number;
+          rating: number;
+          updated_at: string;
+        };
+        Insert: {
+          activity_id: number;
+          app_user_id: string;
+          booking_id: number;
+          comment?: string | null;
+          created_at?: string;
+          id?: number;
+          rating: number;
+          updated_at?: string;
+        };
+        Update: {
+          activity_id?: number;
+          app_user_id?: string;
+          booking_id?: number;
+          comment?: string | null;
+          created_at?: string;
+          id?: number;
+          rating?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'review_activity_id_fkey';
+            columns: ['activity_id'];
+            isOneToOne: false;
+            referencedRelation: 'activity';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'review_app_user_id_fkey';
+            columns: ['app_user_id'];
+            isOneToOne: false;
+            referencedRelation: 'app_user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'review_booking_id_fkey';
+            columns: ['booking_id'];
+            isOneToOne: true;
+            referencedRelation: 'booking';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+    };
     Views: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Functions: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Enums: {
-      global_role: "SUPER_USER" | "PROVIDER" | "USER"
-    }
+      booking_status: 'PENDING' | 'CONFIRMED' | 'CANCELLED';
+      difficulty_level: 'BAJA' | 'MEDIA' | 'ALTA' | 'EXTREMA';
+      global_role: 'SUPER_USER' | 'USER';
+      session_status: 'AVAILABLE' | 'CANCELLED' | 'COMPLETED';
+    };
     CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-}
+      [_ in never]: never;
+    };
+  };
+};
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>;
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals[Extract<
+  keyof Database,
+  'public'
+>];
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
+      Row: infer R;
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] &
+        DefaultSchema['Views'])
+    ? (DefaultSchema['Tables'] &
+        DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R;
       }
       ? R
       : never
-    : never
+    : never;
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
+    | keyof DefaultSchema['Tables']
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+      Insert: infer I;
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I;
       }
       ? I
       : never
-    : never
+    : never;
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
+    | keyof DefaultSchema['Tables']
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+      Update: infer U;
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U;
       }
       ? U
       : never
-    : never
+    : never;
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
+    | keyof DefaultSchema['Enums']
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
+    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+    : never;
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
+    | keyof DefaultSchema['CompositeTypes']
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
+    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+    : never;
 
 export const Constants = {
   graphql_public: {
@@ -206,8 +511,10 @@ export const Constants = {
   },
   public: {
     Enums: {
-      global_role: ["SUPER_USER", "PROVIDER", "USER"],
+      booking_status: ['PENDING', 'CONFIRMED', 'CANCELLED'],
+      difficulty_level: ['BAJA', 'MEDIA', 'ALTA', 'EXTREMA'],
+      global_role: ['SUPER_USER', 'USER'],
+      session_status: ['AVAILABLE', 'CANCELLED', 'COMPLETED'],
     },
   },
-} as const
-
+} as const;

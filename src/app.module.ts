@@ -7,6 +7,11 @@ import { SupabaseModule } from './supabase/supabase.module';
 import { AuthModule } from './auth/auth.module';
 import { AppUserModule } from './app_user/app_user.module';
 import { NewsletterModule } from './newsletter/newsletter.module';
+import { BusinessModule } from './business/business.module';
+import { AdminModule } from './admin/admin.module';
+import { ActivityModule } from './activity/activity.module';
+import { BookingModule } from './booking/booking.module';
+import { CategoryModule } from './category/category.module';
 
 @Module({
   imports: [
@@ -21,6 +26,11 @@ import { NewsletterModule } from './newsletter/newsletter.module';
     AuthModule,
     AppUserModule,
     NewsletterModule,
+    BusinessModule,
+    AdminModule,
+    ActivityModule,
+    BookingModule,
+    CategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
