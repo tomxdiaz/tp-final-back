@@ -9,6 +9,7 @@ import { AppUserModule } from './app_user/app_user.module';
 import { NewsletterModule } from './newsletter/newsletter.module';
 import { BusinessModule } from './business/business.module';
 import { AdminModule } from './admin/admin.module';
+import { ActivityModule } from './activity/activity.module';
 
 @Module({
   imports: [
@@ -24,7 +25,8 @@ import { AdminModule } from './admin/admin.module';
     AppUserModule,
     NewsletterModule,
     BusinessModule,
-    AdminModule
+    AdminModule,
+    ActivityModule,
   ],
   controllers: [AppController],
   providers: [AppService],
