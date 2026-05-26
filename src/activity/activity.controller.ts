@@ -40,7 +40,9 @@ export class ActivityController {
   @UseGuards(SupabaseAuthGuard)
   @ApiOperation({ summary: 'Crear actividad (requiere business verificado)' })
   @ApiCreatedResponse({ type: ActivityDto })
-  @ApiBadRequestResponse({ description: 'Sin business profile o no verificado' })
+  @ApiBadRequestResponse({
+    description: 'Sin business profile o no verificado',
+  })
   @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
   async create(
@@ -51,7 +53,9 @@ export class ActivityController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Listar actividades activas de negocios verificados (público)' })
+  @ApiOperation({
+    summary: 'Listar actividades activas de negocios verificados (público)',
+  })
   @ApiOkResponse({ type: ActivityDto, isArray: true })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
   async findAll(): Promise<ActivityDto[]> {
@@ -63,9 +67,7 @@ export class ActivityController {
   @ApiOkResponse({ type: ActivityDto })
   @ApiNotFoundResponse({ description: 'Actividad no encontrada' })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
-  async findById(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<ActivityDto> {
+  async findById(@Param('id', ParseIntPipe) id: number): Promise<ActivityDto> {
     return this.activityService.findById(id);
   }
 
@@ -89,7 +91,9 @@ export class ActivityController {
   @Post(':id/renew')
   @ApiBearerAuth()
   @UseGuards(SupabaseAuthGuard)
-  @ApiOperation({ summary: 'Renovar sessions de una actividad (solo el dueño)' })
+  @ApiOperation({
+    summary: 'Renovar sessions de una actividad (solo el dueño)',
+  })
   @ApiOkResponse({ type: ActivityDto })
   @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
   @ApiForbiddenResponse({ description: 'No es el dueño de la actividad' })
@@ -121,7 +125,10 @@ export class ActivityController {
   @Post(':id/activate')
   @ApiBearerAuth()
   @UseGuards(SupabaseAuthGuard)
-  @ApiOperation({ summary: 'Activar actividad (solo el dueño, business debe estar verificado)' })
+  @ApiOperation({
+    summary:
+      'Activar actividad (solo el dueño, business debe estar verificado)',
+  })
   @ApiOkResponse({ type: ActivityDto })
   @ApiBadRequestResponse({ description: 'Business no verificado' })
   @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })

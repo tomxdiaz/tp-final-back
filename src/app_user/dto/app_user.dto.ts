@@ -3,7 +3,10 @@ import { IsEmail, IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
 import { AppRole } from '../../utils/enums/roles';
 
 export class AppUserDto {
-  @ApiProperty({ example: '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a1a', format: 'uuid' })
+  @ApiProperty({
+    example: '1a1a1a1a-1a1a-1a1a-1a1a-1a1a1a1a1a1a',
+    format: 'uuid',
+  })
   @IsUUID()
   id!: string;
 

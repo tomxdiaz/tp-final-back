@@ -39,7 +39,9 @@ export class BusinessController {
   @UseGuards(SupabaseAuthGuard)
   @ApiOperation({ summary: 'Crear perfil de negocio' })
   @ApiCreatedResponse({ type: BusinessDto })
-  @ApiConflictResponse({ description: 'Ya existe un perfil de negocio para este usuario' })
+  @ApiConflictResponse({
+    description: 'Ya existe un perfil de negocio para este usuario',
+  })
   @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
   async create(

@@ -1,4 +1,7 @@
-import { InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { AppUserService } from './app_user.service';
 import { UpdateMeDto } from './dto/update-me.dto';
 
@@ -24,14 +27,19 @@ const makeChain = (result: { data: unknown; error: unknown }) => ({
 describe('AppUserService', () => {
   let service: AppUserService;
   let mockChain: ReturnType<typeof makeChain>;
-  let mockAdminClient: { from: jest.Mock; auth: { admin: { updateUserById: jest.Mock } } };
+  let mockAdminClient: {
+    from: jest.Mock;
+    auth: { admin: { updateUserById: jest.Mock } };
+  };
   let mockClient: { from: jest.Mock };
 
   beforeEach(() => {
     mockChain = makeChain({ data: mockUser, error: null });
     mockAdminClient = {
       from: jest.fn().mockReturnValue(mockChain),
-      auth: { admin: { updateUserById: jest.fn().mockResolvedValue({ error: null }) } },
+      auth: {
+        admin: { updateUserById: jest.fn().mockResolvedValue({ error: null }) },
+      },
     };
     mockClient = { from: jest.fn().mockReturnValue(mockChain) };
 
@@ -62,12 +70,19 @@ describe('AppUserService', () => {
 
     it('throws NotFoundException when user does not exist', async () => {
       mockChain.maybeSingle.mockResolvedValue({ data: null, error: null });
-      await expect(service.updateMe('bad-uuid', {})).rejects.toThrow(NotFoundException);
+      await expect(service.updateMe('bad-uuid', {})).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('throws InternalServerErrorException on supabase error', async () => {
-      mockChain.maybeSingle.mockResolvedValue({ data: null, error: { message: 'db error' } });
-      await expect(service.updateMe('user-uuid', {})).rejects.toThrow(InternalServerErrorException);
+      mockChain.maybeSingle.mockResolvedValue({
+        data: null,
+        error: { message: 'db error' },
+      });
+      await expect(service.updateMe('user-uuid', {})).rejects.toThrow(
+        InternalServerErrorException,
+      );
     });
   });
 
@@ -92,7 +107,9 @@ describe('AppUserService', () => {
     });
 
     it('throws InternalServerErrorException on auth error', async () => {
-      mockAdminClient.auth.admin.updateUserById.mockResolvedValue({ error: { message: 'auth error' } });
+      mockAdminClient.auth.admin.updateUserById.mockResolvedValue({
+        error: { message: 'auth error' },
+      });
       await expect(service.setBlockedStatus('user-uuid', true)).rejects.toThrow(
         InternalServerErrorException,
       );

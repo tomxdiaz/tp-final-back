@@ -86,7 +86,9 @@ export class AdminController {
   }
 
   @Patch('/business/:id/deactivate')
-  @ApiOperation({ summary: 'Desactivar un negocio y hacer cascade (SUPER_USER)' })
+  @ApiOperation({
+    summary: 'Desactivar un negocio y hacer cascade (SUPER_USER)',
+  })
   @ApiOkResponse({ type: BusinessDto })
   @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
   @ApiForbiddenResponse({ description: 'Sin permisos' })

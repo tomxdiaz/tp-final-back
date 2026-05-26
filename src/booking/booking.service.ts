@@ -32,20 +32,24 @@ export class BookingService {
       .eq('id', dto.activity_session_id)
       .maybeSingle();
 
-    const session = sessionRaw as SessionWithActivity | null;
+    const session = sessionRaw;
 
     if (sError) {
       this.logger.error(`Error finding session: ${sError.message}`);
-      throw new InternalServerErrorException('Error inesperado al obtener la sesión');
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener la sesión',
+      );
     }
-    if (!session) throw new NotFoundException('Sesión de actividad no encontrada');
+    if (!session)
+      throw new NotFoundException('Sesión de actividad no encontrada');
 
     if (session.status !== 'AVAILABLE') {
       throw new BadRequestException('La sesión no está disponible');
     }
 
     if (session.activity.max_participants !== null) {
-      const available = session.activity.max_participants - session.booked_spots;
+      const available =
+        session.activity.max_participants - session.booked_spots;
       if (dto.number_of_people > available) {
         throw new BadRequestException(
           `No hay suficientes lugares. Disponibles: ${available}`,
@@ -69,7 +73,9 @@ export class BookingService {
 
     if (error) {
       this.logger.error(`Error creating booking: ${error.message}`);
-      throw new InternalServerErrorException('Error inesperado al crear la reserva');
+      throw new InternalServerErrorException(
+        'Error inesperado al crear la reserva',
+      );
     }
 
     const { error: uError } = await supabase
@@ -80,7 +86,9 @@ export class BookingService {
     if (uError) {
       this.logger.error(`Error updating booked_spots: ${uError.message}`);
       await supabase.from('booking').delete().eq('id', data.id);
-      throw new InternalServerErrorException('Error inesperado al actualizar los lugares reservados');
+      throw new InternalServerErrorException(
+        'Error inesperado al actualizar los lugares reservados',
+      );
     }
 
     return this.toBookingDto(data);
@@ -97,12 +105,16 @@ export class BookingService {
 
     if (error) {
       this.logger.error(`Error finding booking: ${error.message}`);
-      throw new InternalServerErrorException('Error inesperado al obtener la reserva');
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener la reserva',
+      );
     }
     if (!booking) throw new NotFoundException('Reserva no encontrada');
 
     if (booking.app_user_id !== userId) {
-      throw new ForbiddenException('No tenés permiso para cancelar esta reserva');
+      throw new ForbiddenException(
+        'No tenés permiso para cancelar esta reserva',
+      );
     }
 
     if (booking.status === 'CANCELLED') {
@@ -118,7 +130,9 @@ export class BookingService {
 
     if (uError) {
       this.logger.error(`Error cancelling booking: ${uError.message}`);
-      throw new InternalServerErrorException('Error inesperado al cancelar la reserva');
+      throw new InternalServerErrorException(
+        'Error inesperado al cancelar la reserva',
+      );
     }
     if (!data) throw new NotFoundException('Reserva no encontrada');
 
@@ -129,12 +143,20 @@ export class BookingService {
       .maybeSingle();
 
     if (sError) {
-      this.logger.error(`Error finding session after cancel: ${sError.message}`);
-      throw new InternalServerErrorException('Error inesperado al actualizar los lugares');
+      this.logger.error(
+        `Error finding session after cancel: ${sError.message}`,
+      );
+      throw new InternalServerErrorException(
+        'Error inesperado al actualizar los lugares',
+      );
     }
-    if (!session) throw new NotFoundException('Sesión de actividad no encontrada');
+    if (!session)
+      throw new NotFoundException('Sesión de actividad no encontrada');
 
-    const newSpots = Math.max(0, session.booked_spots - booking.number_of_people);
+    const newSpots = Math.max(
+      0,
+      session.booked_spots - booking.number_of_people,
+    );
 
     const { error: spError } = await supabase
       .from('activity_session')
@@ -142,8 +164,12 @@ export class BookingService {
       .eq('id', booking.activity_session_id);
 
     if (spError) {
-      this.logger.error(`Error updating booked_spots after cancel: ${spError.message}`);
-      throw new InternalServerErrorException('Error inesperado al devolver los lugares');
+      this.logger.error(
+        `Error updating booked_spots after cancel: ${spError.message}`,
+      );
+      throw new InternalServerErrorException(
+        'Error inesperado al devolver los lugares',
+      );
     }
 
     return this.toBookingDto(data);

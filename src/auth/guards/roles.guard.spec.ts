@@ -16,7 +16,9 @@ describe('RolesGuard', () => {
   let reflector: jest.Mocked<Reflector>;
 
   beforeEach(() => {
-    reflector = { getAllAndOverride: jest.fn() } as unknown as jest.Mocked<Reflector>;
+    reflector = {
+      getAllAndOverride: jest.fn(),
+    } as unknown as jest.Mocked<Reflector>;
     guard = new RolesGuard(reflector);
   });
 
@@ -32,7 +34,9 @@ describe('RolesGuard', () => {
 
   it('denies when user does not have the required role', () => {
     reflector.getAllAndOverride.mockReturnValue(['SUPER_USER']);
-    expect(() => guard.canActivate(makeContext('USER'))).toThrow(ForbiddenException);
+    expect(() => guard.canActivate(makeContext('USER'))).toThrow(
+      ForbiddenException,
+    );
   });
 
   it('allows SUPER_USER regardless of required roles', () => {

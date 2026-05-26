@@ -48,7 +48,7 @@ describe('AppUserController', () => {
 
   describe('findMe', () => {
     it('returns the current user profile', async () => {
-      const result = await controller.findMe(mockAppUserDto as never);
+      const result = await controller.findMe(mockAppUserDto);
       expect(service.findById).toHaveBeenCalledWith('user-uuid');
       expect(result).toEqual(mockAppUserDto);
     });
@@ -57,7 +57,7 @@ describe('AppUserController', () => {
   describe('updateMe', () => {
     it('updates and returns the current user profile', async () => {
       const dto: UpdateMeDto = { first_name: 'Carlos' };
-      const result = await controller.updateMe(mockAppUserDto as never, dto);
+      const result = await controller.updateMe(mockAppUserDto, dto);
       expect(service.updateMe).toHaveBeenCalledWith('user-uuid', dto);
       expect(result).toEqual(mockAppUserDto);
     });

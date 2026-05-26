@@ -33,7 +33,9 @@ export class UpdateActivityDto {
   @ApiPropertyOptional({ example: '09:00' })
   @IsOptional()
   @IsString()
-  @Matches(/^\d{2}:\d{2}$/, { message: 'starting_hour debe tener formato HH:MM' })
+  @Matches(/^\d{2}:\d{2}$/, {
+    message: 'starting_hour debe tener formato HH:MM',
+  })
   starting_hour?: string;
 
   @ApiPropertyOptional({ example: 'Acceso norte del parque' })
