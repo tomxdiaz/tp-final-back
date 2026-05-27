@@ -14,9 +14,24 @@ import type { Tables } from '../supabase/database.types';
 
 type Activity = Tables<'activity'>;
 
+type ActivityWithCategory = Activity & {
+  category: {
+    id: number;
+    name: string;
+  } | null;
+};
+
 @Injectable()
 export class ActivityService {
   private readonly logger = new Logger(ActivityService.name);
+
+  private readonly activitySelect = `
+    *,
+    category:category_id (
+      id,
+      name
+    )
+  `;
 
   constructor(private readonly supabaseService: SupabaseService) {}
 
@@ -35,11 +50,13 @@ export class ActivityService {
         'Error inesperado al verificar el negocio',
       );
     }
+
     if (!business) {
       throw new BadRequestException(
         'Necesitás tener un perfil de negocio para crear actividades',
       );
     }
+
     if (!business.verified) {
       throw new BadRequestException(
         'Tu perfil de negocio debe estar verificado para crear actividades',
@@ -65,7 +82,7 @@ export class ActivityService {
         min_age: dto.min_age ?? null,
         max_participants: dto.max_participants ?? null,
       })
-      .select('*')
+      .select(this.activitySelect)
       .single();
 
     if (error) {
@@ -100,11 +117,12 @@ export class ActivityService {
     }
 
     const ids = (businesses ?? []).map((b) => b.id);
+
     if (ids.length === 0) return [];
 
     const { data, error } = await supabase
       .from('activity')
-      .select('*')
+      .select(this.activitySelect)
       .eq('is_active', true)
       .in('business_id', ids)
       .order('id', { ascending: true });
@@ -124,7 +142,7 @@ export class ActivityService {
 
     const { data, error } = await supabase
       .from('activity')
-      .select('*')
+      .select(this.activitySelect)
       .eq('id', activityId)
       .maybeSingle();
 
@@ -134,7 +152,10 @@ export class ActivityService {
         'Error inesperado al obtener la actividad',
       );
     }
-    if (!data) throw new NotFoundException('Actividad no encontrada');
+
+    if (!data) {
+      throw new NotFoundException('Actividad no encontrada');
+    }
 
     return this.toActivityDto(data);
   }
@@ -149,6 +170,7 @@ export class ActivityService {
     await this.verifyOwnership(activityId, userId);
 
     const updates: Partial<Activity> = {};
+
     if (dto.title !== undefined) updates.title = dto.title;
     if (dto.description !== undefined) updates.description = dto.description;
     if (dto.category_id !== undefined) updates.category_id = dto.category_id;
@@ -172,7 +194,7 @@ export class ActivityService {
       .from('activity')
       .update(updates)
       .eq('id', activityId)
-      .select('*')
+      .select(this.activitySelect)
       .maybeSingle();
 
     if (error) {
@@ -182,19 +204,42 @@ export class ActivityService {
       );
     }
 
-    if (!data) throw new NotFoundException('Actividad no encontrada');
+    if (!data) {
+      throw new NotFoundException('Actividad no encontrada');
+    }
 
     return this.toActivityDto(data);
   }
 
   async renew(activityId: number, userId: string): Promise<ActivityDto> {
     const activity = await this.verifyOwnership(activityId, userId);
+
     await this.createSessionsForActivity(
       activity.id,
       activity.days_of_week,
       activity.starting_hour,
     );
-    return this.toActivityDto(activity);
+
+    const supabase = this.supabaseService.getAdminClient();
+
+    const { data, error } = await supabase
+      .from('activity')
+      .select(this.activitySelect)
+      .eq('id', activityId)
+      .maybeSingle();
+
+    if (error) {
+      this.logger.error(`Error renewing activity: ${error.message}`);
+      throw new InternalServerErrorException(
+        'Error inesperado al renovar la actividad',
+      );
+    }
+
+    if (!data) {
+      throw new NotFoundException('Actividad no encontrada');
+    }
+
+    return this.toActivityDto(data);
   }
 
   async deactivate(activityId: number, userId: string): Promise<ActivityDto> {
@@ -250,7 +295,7 @@ export class ActivityService {
       .from('activity')
       .update({ is_active: false })
       .eq('id', activityId)
-      .select('*')
+      .select(this.activitySelect)
       .maybeSingle();
 
     if (error) {
@@ -260,7 +305,9 @@ export class ActivityService {
       );
     }
 
-    if (!data) throw new NotFoundException('Actividad no encontrada');
+    if (!data) {
+      throw new NotFoundException('Actividad no encontrada');
+    }
 
     return this.toActivityDto(data);
   }
@@ -282,11 +329,13 @@ export class ActivityService {
         'Error inesperado al verificar el negocio',
       );
     }
+
     if (!business) {
       throw new InternalServerErrorException(
         'Error inesperado al verificar el negocio',
       );
     }
+
     if (!business.verified) {
       throw new BadRequestException(
         'El perfil de negocio debe estar verificado para activar actividades',
@@ -297,7 +346,7 @@ export class ActivityService {
       .from('activity')
       .update({ is_active: true })
       .eq('id', activityId)
-      .select('*')
+      .select(this.activitySelect)
       .maybeSingle();
 
     if (error) {
@@ -307,7 +356,9 @@ export class ActivityService {
       );
     }
 
-    if (!data) throw new NotFoundException('Actividad no encontrada');
+    if (!data) {
+      throw new NotFoundException('Actividad no encontrada');
+    }
 
     await this.createSessionsForActivity(
       data.id,
@@ -336,7 +387,10 @@ export class ActivityService {
         'Error inesperado al obtener la actividad',
       );
     }
-    if (!activity) throw new NotFoundException('Actividad no encontrada');
+
+    if (!activity) {
+      throw new NotFoundException('Actividad no encontrada');
+    }
 
     const { data: business, error: bError } = await supabase
       .from('business')
@@ -348,15 +402,18 @@ export class ActivityService {
       this.logger.error(
         `Error finding business for ownership check: ${bError.message}`,
       );
+
       throw new InternalServerErrorException(
         'Error inesperado al verificar el propietario',
       );
     }
+
     if (!business) {
       throw new InternalServerErrorException(
         'Error inesperado al verificar el propietario',
       );
     }
+
     if (business.app_user_id !== userId) {
       throw new ForbiddenException(
         'No tenés permiso para modificar esta actividad',
@@ -372,7 +429,9 @@ export class ActivityService {
     startingHour: string,
   ): Promise<void> {
     const supabase = this.supabaseService.getAdminClient();
+
     const datetimes = this.generateSessionDates(daysOfWeek, startingHour);
+
     if (datetimes.length === 0) return;
 
     const sessions = datetimes.map((datetime) => ({
@@ -387,6 +446,7 @@ export class ActivityService {
 
     if (error) {
       this.logger.error(`Error creating sessions: ${error.message}`);
+
       throw new InternalServerErrorException(
         'Error inesperado al crear las sesiones',
       );
@@ -398,7 +458,9 @@ export class ActivityService {
     startingHour: string,
   ): string[] {
     const dates: string[] = [];
+
     const now = new Date();
+
     const end = new Date();
     end.setUTCDate(now.getUTCDate() + 30);
 
@@ -411,25 +473,37 @@ export class ActivityService {
         const month = String(current.getUTCMonth() + 1).padStart(2, '0');
         const day = String(current.getUTCDate()).padStart(2, '0');
         const hour = startingHour.substring(0, 5);
+
         const datetimeStr = `${year}-${month}-${day}T${hour}:00.000Z`;
+
         const sessionDate = new Date(datetimeStr);
+
         if (sessionDate > now) {
           dates.push(datetimeStr);
         }
       }
+
       current.setUTCDate(current.getUTCDate() + 1);
     }
 
     return dates;
   }
 
-  private toActivityDto(activity: Activity): ActivityDto {
+  private toActivityDto(activity: ActivityWithCategory): ActivityDto {
     return {
       id: activity.id,
       business_id: activity.business_id,
       title: activity.title,
       description: activity.description ?? null,
       category_id: activity.category_id,
+
+      category: activity.category
+        ? {
+            id: activity.category.id,
+            name: activity.category.name,
+          }
+        : undefined,
+
       starting_hour: activity.starting_hour,
       meeting_point: activity.meeting_point ?? null,
       latitude: activity.latitude ?? null,

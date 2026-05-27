@@ -1,4 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { CategoryDto } from '../../category/dto/category.dto';
+import { Type } from 'class-transformer';
+import { IsOptional, ValidateNested } from 'class-validator';
 
 export class ActivityDto {
   @ApiProperty({ example: 1 })
@@ -15,6 +18,12 @@ export class ActivityDto {
 
   @ApiProperty({ example: 1 })
   category_id!: number;
+
+  @ApiPropertyOptional({ type: () => CategoryDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CategoryDto)
+  category?: CategoryDto;
 
   @ApiProperty({ example: '09:00:00' })
   starting_hour!: string;
