@@ -46,6 +46,8 @@ export class ActivityService {
       );
     }
 
+    await this.validateCategory(dto.category_id);
+
     const { data, error } = await supabase
       .from('activity')
       .insert({
@@ -53,6 +55,8 @@ export class ActivityService {
         title: dto.title,
         description: dto.description ?? null,
         category_id: dto.category_id,
+        location: dto.location ?? null,
+        images: dto.images ?? [],
         starting_hour: dto.starting_hour,
         meeting_point: dto.meeting_point ?? null,
         latitude: dto.latitude ?? null,
@@ -148,10 +152,16 @@ export class ActivityService {
 
     await this.verifyOwnership(activityId, userId);
 
+    if (dto.category_id !== undefined) {
+      await this.validateCategory(dto.category_id);
+    }
+
     const updates: Partial<Activity> = {};
     if (dto.title !== undefined) updates.title = dto.title;
     if (dto.description !== undefined) updates.description = dto.description;
     if (dto.category_id !== undefined) updates.category_id = dto.category_id;
+    if (dto.location !== undefined) updates.location = dto.location;
+    if (dto.images !== undefined) updates.images = dto.images;
     if (dto.starting_hour !== undefined)
       updates.starting_hour = dto.starting_hour;
     if (dto.meeting_point !== undefined)
@@ -423,6 +433,27 @@ export class ActivityService {
     return dates;
   }
 
+  private async validateCategory(categoryId: number): Promise<void> {
+    const supabase = this.supabaseService.getAdminClient();
+    const { data, error } = await supabase
+      .from('category')
+      .select('id')
+      .eq('id', categoryId)
+      .maybeSingle();
+
+    if (error) {
+      this.logger.error(`Error validating category: ${error.message}`);
+      throw new InternalServerErrorException(
+        'Error inesperado al validar la categoría',
+      );
+    }
+    if (!data) {
+      throw new BadRequestException(
+        `La categoría con id ${categoryId} no existe`,
+      );
+    }
+  }
+
   private toActivityDto(activity: Activity): ActivityDto {
     return {
       id: activity.id,
@@ -430,6 +461,8 @@ export class ActivityService {
       title: activity.title,
       description: activity.description ?? null,
       category_id: activity.category_id,
+      location: activity.location ?? null,
+      images: activity.images,
       starting_hour: activity.starting_hour,
       meeting_point: activity.meeting_point ?? null,
       latitude: activity.latitude ?? null,

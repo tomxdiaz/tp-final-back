@@ -46,8 +46,10 @@ export type Database = {
           difficulty: Database['public']['Enums']['difficulty_level'] | null;
           duration_minutes: number | null;
           id: number;
+          images: string[];
           is_active: boolean;
           latitude: number | null;
+          location: string | null;
           longitude: number | null;
           max_participants: number | null;
           meeting_point: string | null;
@@ -67,8 +69,10 @@ export type Database = {
           difficulty?: Database['public']['Enums']['difficulty_level'] | null;
           duration_minutes?: number | null;
           id?: number;
+          images?: string[];
           is_active?: boolean;
           latitude?: number | null;
+          location?: string | null;
           longitude?: number | null;
           max_participants?: number | null;
           meeting_point?: string | null;
@@ -88,8 +92,10 @@ export type Database = {
           difficulty?: Database['public']['Enums']['difficulty_level'] | null;
           duration_minutes?: number | null;
           id?: number;
+          images?: string[];
           is_active?: boolean;
           latitude?: number | null;
+          location?: string | null;
           longitude?: number | null;
           max_participants?: number | null;
           meeting_point?: string | null;

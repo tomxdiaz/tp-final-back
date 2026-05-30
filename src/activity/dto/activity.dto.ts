@@ -19,6 +19,12 @@ export class ActivityDto {
   @ApiProperty({ example: '09:00:00' })
   starting_hour!: string;
 
+  @ApiPropertyOptional({ example: 'Buenos Aires, Argentina' })
+  location!: string | null;
+
+  @ApiProperty({ example: ['https://example.com/img1.jpg'], isArray: true })
+  images!: string[];
+
   @ApiPropertyOptional({ example: 'Acceso norte del parque' })
   meeting_point!: string | null;
 
