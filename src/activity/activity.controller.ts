@@ -141,4 +141,34 @@ export class ActivityController {
   ): Promise<ActivityDto> {
     return this.activityService.activate(id, appUser.id);
   }
+
+  @Get('/business/me')
+  @ApiBearerAuth()
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({
+    summary: 'Listar actividades activas de mi negocio, activas e inactivas',
+  })
+  @ApiOkResponse({ type: ActivityDto, isArray: true })
+  @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
+  @ApiForbiddenResponse({ description: 'No es el dueño de la actividad' })
+  @ApiNotFoundResponse({ description: 'Negocio no encontrado' })
+  @ApiInternalServerErrorResponse({ description: 'Error interno' })
+  async findAllOfMyBusiness(
+    @CurrentAppUser appUser: AppUser,
+  ): Promise<ActivityDto[]> {
+    return this.activityService.findAllOfMyBusiness(appUser.id);
+  }
+
+  @Get('/business/:businessId')
+  @ApiOperation({
+    summary: 'Listar actividades activas de un negocio activo',
+  })
+  @ApiOkResponse({ type: ActivityDto, isArray: true })
+  @ApiNotFoundResponse({ description: 'Negocio no encontrado' })
+  @ApiInternalServerErrorResponse({ description: 'Error interno' })
+  async findAllByBusiness(
+    @Param('businessId', ParseIntPipe) businessId: number,
+  ): Promise<ActivityDto[]> {
+    return this.activityService.findAllByBusinessPublic(businessId);
+  }
 }

@@ -3,9 +3,10 @@ import { ActivityService } from './activity.service';
 import { ActivityController } from './activity.controller';
 import { SupabaseModule } from '../supabase/supabase.module';
 import { AuthModule } from '../auth/auth.module';
+import { BusinessModule } from '../business/business.module';
 
 @Module({
-  imports: [SupabaseModule, AuthModule],
+  imports: [SupabaseModule, AuthModule, BusinessModule],
   controllers: [ActivityController],
   providers: [ActivityService],
   exports: [ActivityService],

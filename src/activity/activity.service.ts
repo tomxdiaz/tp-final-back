@@ -11,6 +11,7 @@ import { ActivityDto } from './dto/activity.dto';
 import { CreateActivityDto } from './dto/create-activity.dto';
 import { UpdateActivityDto } from './dto/update-activity.dto';
 import type { Tables } from '../supabase/database.types';
+import { BusinessService } from '../business/business.service';
 
 type Activity = Tables<'activity'>;
 
@@ -33,7 +34,10 @@ export class ActivityService {
     )
   `;
 
-  constructor(private readonly supabaseService: SupabaseService) {}
+  constructor(
+    private readonly supabaseService: SupabaseService,
+    private readonly businessService: BusinessService,
+  ) {}
 
   async create(userId: string, dto: CreateActivityDto): Promise<ActivityDto> {
     const supabase = this.supabaseService.getAdminClient();
@@ -108,13 +112,15 @@ export class ActivityService {
   async findAllPublic(): Promise<ActivityDto[]> {
     const supabase = this.supabaseService.getAdminClient();
 
-    const { data: businesses, error: bError } = await supabase
+    const { data: businesses, error: businessError } = await supabase
       .from('business')
       .select('id')
       .eq('verified', true);
 
-    if (bError) {
-      this.logger.error(`Error finding verified businesses: ${bError.message}`);
+    if (businessError) {
+      this.logger.error(
+        `Error finding verified businesses: ${businessError.message}`,
+      );
       throw new InternalServerErrorException(
         'Error inesperado al obtener las actividades',
       );
@@ -133,6 +139,53 @@ export class ActivityService {
 
     if (error) {
       this.logger.error(`Error finding activities: ${error.message}`);
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener las actividades',
+      );
+    }
+
+    return (data ?? []).map((a) => this.toActivityDto(a));
+  }
+
+  async findAllOfMyBusiness(appUserId: string): Promise<ActivityDto[]> {
+    const supabase = this.supabaseService.getAdminClient();
+
+    const business = await this.businessService.findMyProfile(appUserId);
+
+    const { data, error } = await supabase
+      .from('activity')
+      .select(this.activitySelect)
+      .eq('business_id', business.id)
+      .order('id', { ascending: true });
+
+    if (error) {
+      this.logger.error(
+        `Error finding activities for my business: ${error.message}`,
+      );
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener las actividades',
+      );
+    }
+
+    return (data ?? []).map((a) => this.toActivityDto(a));
+  }
+
+  async findAllByBusinessPublic(businessId: number): Promise<ActivityDto[]> {
+    const supabase = this.supabaseService.getAdminClient();
+
+    const business = await this.businessService.findPublicById(businessId);
+
+    const { data, error } = await supabase
+      .from('activity')
+      .select(this.activitySelect)
+      .eq('is_active', true)
+      .eq('business_id', business.id)
+      .order('id', { ascending: true });
+
+    if (error) {
+      this.logger.error(
+        `Error finding activities for business: ${error.message}`,
+      );
       throw new InternalServerErrorException(
         'Error inesperado al obtener las actividades',
       );
