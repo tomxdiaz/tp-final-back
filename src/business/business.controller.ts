@@ -21,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { BusinessService } from './business.service';
 import { BusinessDto } from './dto/business.dto';
+import { BusinessBookingDto } from './dto/business-booking.dto';
 import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
 import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
@@ -69,6 +70,20 @@ export class BusinessController {
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
   async findMe(@CurrentAppUser appUser: AppUser): Promise<BusinessDto> {
     return this.businessService.findMyProfile(appUser.id);
+  }
+
+  @Get('me/bookings')
+  @ApiBearerAuth()
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({ summary: 'Listar todas las reservas de mi negocio' })
+  @ApiOkResponse({ type: BusinessBookingDto, isArray: true })
+  @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
+  @ApiNotFoundResponse({ description: 'Perfil de negocio no encontrado' })
+  @ApiInternalServerErrorResponse({ description: 'Error interno' })
+  async findMyBookings(
+    @CurrentAppUser appUser: AppUser,
+  ): Promise<BusinessBookingDto[]> {
+    return this.businessService.findMyBookings(appUser.id);
   }
 
   @Patch('me')

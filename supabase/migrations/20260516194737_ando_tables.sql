@@ -90,8 +90,7 @@ create table if not exists public.booking (
 create table if not exists public.review (
   id          serial primary key,
   app_user_id uuid not null references public.app_user(id),
-  activity_id integer not null references public.activity(id),
-  booking_id  integer not null unique references public.booking(id),
+  business_id integer not null references public.business(id) on delete cascade,
   rating      int not null check (rating >= 1 and rating <= 5),
   comment     text,
   created_at  timestamptz not null default now(),

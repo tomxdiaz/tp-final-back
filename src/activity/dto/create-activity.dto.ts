@@ -7,6 +7,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUrl,
   Matches,
   Max,
   Min,
@@ -35,6 +36,20 @@ export class CreateActivityDto {
     message: 'starting_hour debe tener formato HH:MM',
   })
   starting_hour!: string;
+
+  @ApiPropertyOptional({ example: 'Buenos Aires, Argentina' })
+  @IsOptional()
+  @IsString()
+  location?: string;
+
+  @ApiPropertyOptional({
+    example: ['https://example.com/img1.jpg'],
+    isArray: true,
+  })
+  @IsOptional()
+  @IsArray()
+  @IsUrl({}, { each: true })
+  images?: string[];
 
   @ApiPropertyOptional({ example: 'Acceso norte del parque' })
   @IsOptional()

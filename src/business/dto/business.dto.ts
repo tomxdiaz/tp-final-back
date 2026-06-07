@@ -1,12 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  IsArray,
   IsBoolean,
   IsEmail,
   IsNumber,
   IsOptional,
   IsString,
   IsUUID,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import { ReviewDto } from '../../review/dto/review.dto';
 
 export class BusinessDto {
   @ApiProperty({ example: 1 })
@@ -45,4 +49,10 @@ export class BusinessDto {
 
   @ApiProperty({ example: '2024-01-01T00:00:00Z' })
   updated_at!: string;
+
+  @ApiProperty({ type: [ReviewDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ReviewDto)
+  reviews!: ReviewDto[];
 }
