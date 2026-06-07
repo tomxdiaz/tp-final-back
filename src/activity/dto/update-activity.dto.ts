@@ -1,4 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform, Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
   IsArray,
@@ -14,6 +15,19 @@ import {
   MaxLength,
 } from 'class-validator';
 
+/** Wraps a single multipart value into an array (FormData sends 1 item as a scalar). */
+const toArray = ({ value }: { value: unknown }): unknown => {
+  if (value === undefined || value === null) return value;
+  return Array.isArray(value) ? value : [value];
+};
+
+/** Coerces multipart string values (and arrays of them) into numbers. */
+const toNumberArray = ({ value }: { value: unknown }): unknown => {
+  if (value === undefined || value === null) return value;
+  const arr = Array.isArray(value) ? value : [value];
+  return arr.map((v) => Number(v));
+};
+
 export class UpdateActivityDto {
   @ApiPropertyOptional({ example: 'Trekking en la Patagonia' })
   @IsOptional()
@@ -28,6 +42,7 @@ export class UpdateActivityDto {
 
   @ApiPropertyOptional({ example: 1 })
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   category_id?: number;
 
@@ -45,13 +60,24 @@ export class UpdateActivityDto {
   location?: string;
 
   @ApiPropertyOptional({
-    example: ['https://example.com/img1.jpg'],
+    type: 'string',
+    format: 'binary',
     isArray: true,
+    description: 'Archivos de imagen nuevos a subir (multipart)',
   })
   @IsOptional()
+  images?: unknown;
+
+  @ApiPropertyOptional({
+    type: [String],
+    example: ['https://example.com/img1.jpg'],
+    description: 'URLs de imágenes ya existentes que se quieren conservar',
+  })
+  @IsOptional()
+  @Transform(toArray)
   @IsArray()
   @IsUrl({}, { each: true })
-  images?: string[];
+  existingImages?: string[];
 
   @ApiPropertyOptional({ example: 'Acceso norte del parque' })
   @IsOptional()
@@ -60,11 +86,13 @@ export class UpdateActivityDto {
 
   @ApiPropertyOptional({ example: -41.1335 })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   latitude?: number;
 
   @ApiPropertyOptional({ example: -71.3103 })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   longitude?: number;
 
@@ -75,12 +103,14 @@ export class UpdateActivityDto {
 
   @ApiPropertyOptional({ example: 120 })
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   duration_minutes?: number;
 
   @ApiPropertyOptional({ example: 5000 })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   @Min(0)
   base_price?: number;
@@ -92,6 +122,7 @@ export class UpdateActivityDto {
 
   @ApiPropertyOptional({ example: [1, 3, 5] })
   @IsOptional()
+  @Transform(toNumberArray)
   @IsArray()
   @ArrayNotEmpty()
   @IsInt({ each: true })
@@ -101,6 +132,7 @@ export class UpdateActivityDto {
 
   @ApiPropertyOptional({ example: 18 })
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(0)
   min_age?: number;

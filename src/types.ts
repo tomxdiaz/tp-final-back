@@ -1,9 +1,37 @@
 // ─── Shared enums ────────────────────────────────────────────────────────────
 
-export type GlobalRole = 'SUPER_USER' | 'USER';
-export type DifficultyLevel = 'BAJA' | 'MEDIA' | 'ALTA' | 'EXTREMA';
-export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED';
-export type SessionStatus = 'AVAILABLE' | 'CANCELLED' | 'COMPLETED';
+export const GlobalRole = {
+  SUPER_USER: 'SUPER_USER',
+  USER: 'USER',
+} as const;
+
+export type GlobalRole = (typeof GlobalRole)[keyof typeof GlobalRole];
+
+export const DifficultyLevel = {
+  BAJA: 'BAJA',
+  MEDIA: 'MEDIA',
+  ALTA: 'ALTA',
+  EXTREMA: 'EXTREMA',
+} as const;
+
+export type DifficultyLevel =
+  (typeof DifficultyLevel)[keyof typeof DifficultyLevel];
+
+export const BookingStatus = {
+  PENDING: 'PENDING',
+  CONFIRMED: 'CONFIRMED',
+  CANCELLED: 'CANCELLED',
+} as const;
+
+export type BookingStatus = (typeof BookingStatus)[keyof typeof BookingStatus];
+
+export const SessionStatus = {
+  AVAILABLE: 'AVAILABLE',
+  CANCELLED: 'CANCELLED',
+  COMPLETED: 'COMPLETED',
+} as const;
+
+export type SessionStatus = (typeof SessionStatus)[keyof typeof SessionStatus];
 
 // ─── AppUser ─────────────────────────────────────────────────────────────────
 
@@ -127,7 +155,7 @@ export interface CreateActivityPayload {
   /** Format HH:MM */
   starting_hour: string;
   location?: string;
-  images?: string[];
+  images?: File[];
   meeting_point?: string;
   latitude?: number;
   longitude?: number;
@@ -146,7 +174,9 @@ export interface UpdateActivityPayload {
   category_id?: number;
   starting_hour?: string;
   location?: string;
-  images?: string[];
+  images?: File[];
+  /** URLs of existing images to keep */
+  existingImages?: string[];
   meeting_point?: string;
   latitude?: number;
   longitude?: number;
