@@ -7,6 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
+import type { UploadedImage } from '../supabase/supabase.service';
 import { ActivityDto } from './dto/activity.dto';
 import { CreateActivityDto } from './dto/create-activity.dto';
 import { UpdateActivityDto } from './dto/update-activity.dto';
@@ -57,7 +58,11 @@ export class ActivityService {
     private readonly businessService: BusinessService,
   ) {}
 
-  async create(userId: string, dto: CreateActivityDto): Promise<ActivityDto> {
+  async create(
+    userId: string,
+    dto: CreateActivityDto,
+    files?: UploadedImage[],
+  ): Promise<ActivityDto> {
     const supabase = this.supabaseService.getAdminClient();
 
     const { data: business, error: bError } = await supabase
@@ -85,6 +90,12 @@ export class ActivityService {
 
     await this.validateCategory(dto.category_id);
 
+    const uploadedUrls = await this.supabaseService.uploadImages(
+      files ?? [],
+      `business-${business.id}`,
+    );
+    const images = [...(dto.existingImages ?? []), ...uploadedUrls];
+
     const { data, error } = await supabase
       .from('activity')
       .insert({
@@ -93,7 +104,7 @@ export class ActivityService {
         description: dto.description ?? null,
         category_id: dto.category_id,
         location: dto.location ?? null,
-        images: dto.images ?? [],
+        images,
         starting_hour: dto.starting_hour,
         meeting_point: dto.meeting_point ?? null,
         latitude: dto.latitude ?? null,
@@ -214,7 +225,9 @@ export class ActivityService {
 
     const { data, error } = await supabase
       .from('activity')
-      .select(`${this.activitySelect}, sessions:activity_session(*), business(*)`)
+      .select(
+        `${this.activitySelect}, sessions:activity_session(*), business(*)`,
+      )
       .eq('id', activityId)
       .maybeSingle();
 
@@ -242,7 +255,9 @@ export class ActivityService {
 
     const { data, error } = await supabase
       .from('activity')
-      .select(`${this.activitySelect}, sessions:activity_session(*), business(*)`)
+      .select(
+        `${this.activitySelect}, sessions:activity_session(*), business(*)`,
+      )
       .eq('id', activityId)
       .maybeSingle();
 
@@ -264,6 +279,7 @@ export class ActivityService {
     activityId: number,
     userId: string,
     dto: UpdateActivityDto,
+    files?: UploadedImage[],
   ): Promise<ActivityDto> {
     const supabase = this.supabaseService.getAdminClient();
 
@@ -336,7 +352,17 @@ export class ActivityService {
     if (dto.description !== undefined) updates.description = dto.description;
     if (dto.category_id !== undefined) updates.category_id = dto.category_id;
     if (dto.location !== undefined) updates.location = dto.location;
-    if (dto.images !== undefined) updates.images = dto.images;
+
+    // Only touch images if the client sent new files or an explicit list of
+    // images to keep. Otherwise leave the existing images untouched.
+    if ((files && files.length > 0) || dto.existingImages !== undefined) {
+      const uploadedUrls = await this.supabaseService.uploadImages(
+        files ?? [],
+        `business-${currentActivity.business_id}`,
+      );
+      updates.images = [...(dto.existingImages ?? []), ...uploadedUrls];
+    }
+
     if (dto.starting_hour !== undefined)
       updates.starting_hour = dto.starting_hour;
     if (dto.meeting_point !== undefined)
@@ -384,7 +410,9 @@ export class ActivityService {
 
     const { data, error } = await supabase
       .from('activity')
-      .select(`${this.activitySelect}, sessions:activity_session(*), business(*)`)
+      .select(
+        `${this.activitySelect}, sessions:activity_session(*), business(*)`,
+      )
       .eq('id', activityId)
       .maybeSingle();
 
