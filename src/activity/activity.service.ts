@@ -72,13 +72,11 @@ export class ActivityService {
         'Error inesperado al verificar el negocio',
       );
     }
-
     if (!business) {
       throw new BadRequestException(
         'Necesitás tener un perfil de negocio para crear actividades',
       );
     }
-
     if (!business.verified) {
       throw new BadRequestException(
         'Tu perfil de negocio debe estar verificado para crear actividades',
@@ -145,7 +143,6 @@ export class ActivityService {
     }
 
     const ids = (businesses ?? []).map((b) => b.id);
-
     if (ids.length === 0) return [];
 
     const { data, error } = await supabase
@@ -377,7 +374,6 @@ export class ActivityService {
 
   async renew(activityId: number, userId: string): Promise<ActivityDto> {
     const activity = await this.verifyOwnership(activityId, userId);
-
     await this.createSessionsForActivity(
       activity.id,
       activity.days_of_week,
@@ -560,13 +556,11 @@ export class ActivityService {
         'Error inesperado al verificar el negocio',
       );
     }
-
     if (!business) {
       throw new InternalServerErrorException(
         'Error inesperado al verificar el negocio',
       );
     }
-
     if (!business.verified) {
       throw new BadRequestException(
         'El perfil de negocio debe estar verificado para activar actividades',
@@ -633,18 +627,15 @@ export class ActivityService {
       this.logger.error(
         `Error finding business for ownership check: ${bError.message}`,
       );
-
       throw new InternalServerErrorException(
         'Error inesperado al verificar el propietario',
       );
     }
-
     if (!business) {
       throw new InternalServerErrorException(
         'Error inesperado al verificar el propietario',
       );
     }
-
     if (business.app_user_id !== userId) {
       throw new ForbiddenException(
         'No tenés permiso para modificar esta actividad',
@@ -677,7 +668,6 @@ export class ActivityService {
 
     if (error) {
       this.logger.error(`Error creating sessions: ${error.message}`);
-
       throw new InternalServerErrorException(
         'Error inesperado al crear las sesiones',
       );
@@ -713,7 +703,6 @@ export class ActivityService {
           dates.push(datetimeStr);
         }
       }
-
       current.setUTCDate(current.getUTCDate() + 1);
     }
 

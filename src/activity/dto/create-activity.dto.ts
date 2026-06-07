@@ -42,7 +42,10 @@ export class CreateActivityDto {
   @IsString()
   location?: string;
 
-  @ApiPropertyOptional({ example: ['https://example.com/img1.jpg'], isArray: true })
+  @ApiPropertyOptional({
+    example: ['https://example.com/img1.jpg'],
+    isArray: true,
+  })
   @IsOptional()
   @IsArray()
   @IsUrl({}, { each: true })
