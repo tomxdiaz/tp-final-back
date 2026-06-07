@@ -9,6 +9,7 @@ import {
 import { SupabaseService } from '../supabase/supabase.service';
 import { BookingDto } from './dto/booking.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
+import { BookingStatus } from '../utils/enums/roles';
 
 type BookingWithJoins = {
   id: number;
@@ -16,7 +17,7 @@ type BookingWithJoins = {
   activity_session_id: number | null;
   number_of_people: number;
   total_price: number;
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED';
+  status: BookingStatus;
   customer_notes: string | null;
   created_at: string;
   updated_at: string;

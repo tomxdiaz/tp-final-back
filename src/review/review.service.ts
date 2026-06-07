@@ -1,6 +1,5 @@
 import {
   ConflictException,
-  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -32,27 +31,6 @@ export class ReviewService {
       );
     }
     if (!business) throw new NotFoundException('Negocio no encontrado');
-
-    const { data: booking, error: bookError } = await supabase
-      .from('booking')
-      .select(
-        'id, activity_session!inner(id, activity!inner(id, business_id))',
-      )
-      .eq('app_user_id', userId)
-      .eq('activity_session.activity.business_id', dto.business_id)
-      .limit(1)
-      .maybeSingle();
-
-    if (bookError) {
-      this.logger.error(`Error checking booking: ${bookError.message}`);
-      throw new InternalServerErrorException(
-        'Error inesperado al verificar la reserva',
-      );
-    }
-    if (!booking)
-      throw new ForbiddenException(
-        'Debés tener una reserva en este negocio para dejar una reseña',
-      );
 
     const { data: review, error: rError } = await supabase
       .from('review')
