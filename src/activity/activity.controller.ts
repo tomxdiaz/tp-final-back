@@ -1,7 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseIntPipe,
   Patch,
@@ -14,6 +17,7 @@ import {
   ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
+  ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -106,6 +110,23 @@ export class ActivityController {
     return this.activityService.renew(id, appUser.id);
   }
 
+  @Delete(':id')
+  @ApiBearerAuth()
+  @UseGuards(SupabaseAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Eliminar actividad (solo el dueño)' })
+  @ApiNoContentResponse()
+  @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
+  @ApiForbiddenResponse({ description: 'No es el dueño de la actividad' })
+  @ApiNotFoundResponse({ description: 'Actividad no encontrada' })
+  @ApiInternalServerErrorResponse({ description: 'Error interno' })
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentAppUser appUser: AppUser,
+  ): Promise<void> {
+    return this.activityService.delete(id, appUser.id);
+  }
+
   @Post(':id/deactivate')
   @ApiBearerAuth()
   @UseGuards(SupabaseAuthGuard)
@@ -146,7 +167,7 @@ export class ActivityController {
   @ApiBearerAuth()
   @UseGuards(SupabaseAuthGuard)
   @ApiOperation({
-    summary: 'Listar actividades activas de mi negocio, activas e inactivas',
+    summary: 'Listar actividades de mi negocio, activas e inactivas',
   })
   @ApiOkResponse({ type: ActivityDto, isArray: true })
   @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
@@ -157,6 +178,24 @@ export class ActivityController {
     @CurrentAppUser appUser: AppUser,
   ): Promise<ActivityDto[]> {
     return this.activityService.findAllOfMyBusiness(appUser.id);
+  }
+
+  @Get('/me/:id')
+  @ApiBearerAuth()
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({
+    summary: 'Obtener actividad por id (solo el dueño, activa o inactiva)',
+  })
+  @ApiOkResponse({ type: ActivityDto })
+  @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
+  @ApiForbiddenResponse({ description: 'No es el dueño de la actividad' })
+  @ApiNotFoundResponse({ description: 'Actividad no encontrada' })
+  @ApiInternalServerErrorResponse({ description: 'Error interno' })
+  async findByIdOwner(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentAppUser appUser: AppUser,
+  ): Promise<ActivityDto> {
+    return await this.activityService.findByIdOwner(id, appUser.id);
   }
 
   @Get('/business/:businessId')

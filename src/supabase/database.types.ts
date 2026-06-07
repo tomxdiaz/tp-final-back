@@ -194,7 +194,7 @@ export type Database = {
       };
       booking: {
         Row: {
-          activity_session_id: number;
+          activity_session_id: number | null;
           app_user_id: string;
           created_at: string;
           customer_notes: string | null;
@@ -205,7 +205,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
-          activity_session_id: number;
+          activity_session_id?: number | null;
           app_user_id: string;
           created_at?: string;
           customer_notes?: string | null;
@@ -319,9 +319,8 @@ export type Database = {
       };
       review: {
         Row: {
-          activity_id: number;
           app_user_id: string;
-          booking_id: number;
+          business_id: number;
           comment: string | null;
           created_at: string;
           id: number;
@@ -329,9 +328,8 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
-          activity_id: number;
           app_user_id: string;
-          booking_id: number;
+          business_id: number;
           comment?: string | null;
           created_at?: string;
           id?: number;
@@ -339,9 +337,8 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
-          activity_id?: number;
           app_user_id?: string;
-          booking_id?: number;
+          business_id?: number;
           comment?: string | null;
           created_at?: string;
           id?: number;
@@ -350,13 +347,6 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: 'review_activity_id_fkey';
-            columns: ['activity_id'];
-            isOneToOne: false;
-            referencedRelation: 'activity';
-            referencedColumns: ['id'];
-          },
-          {
             foreignKeyName: 'review_app_user_id_fkey';
             columns: ['app_user_id'];
             isOneToOne: false;
@@ -364,10 +354,10 @@ export type Database = {
             referencedColumns: ['id'];
           },
           {
-            foreignKeyName: 'review_booking_id_fkey';
-            columns: ['booking_id'];
-            isOneToOne: true;
-            referencedRelation: 'booking';
+            foreignKeyName: 'review_business_id_fkey';
+            columns: ['business_id'];
+            isOneToOne: false;
+            referencedRelation: 'business';
             referencedColumns: ['id'];
           },
         ];

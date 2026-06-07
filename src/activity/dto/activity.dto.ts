@@ -3,6 +3,55 @@ import { CategoryDto } from '../../category/dto/category.dto';
 import { Type } from 'class-transformer';
 import { IsOptional, ValidateNested } from 'class-validator';
 
+export class ActivityBusinessDto {
+  @ApiProperty({ example: 1 })
+  id!: number;
+
+  @ApiProperty({ format: 'uuid' })
+  app_user_id!: string;
+
+  @ApiProperty({ example: 'Aventuras del Sur' })
+  business_name!: string;
+
+  @ApiPropertyOptional({ example: 'Ofrecemos excursiones en la Patagonia' })
+  description!: string | null;
+
+  @ApiPropertyOptional({ example: 'contacto@aventurasur.com' })
+  contact_email!: string | null;
+
+  @ApiPropertyOptional({ example: '+54911234567' })
+  contact_phone!: string | null;
+
+  @ApiProperty({ example: false })
+  verified!: boolean;
+
+  @ApiProperty({ example: '2024-01-01T00:00:00Z' })
+  created_at!: string;
+
+  @ApiProperty({ example: '2024-01-01T00:00:00Z' })
+  updated_at!: string;
+}
+
+export class ActivitySessionDto {
+  @ApiProperty({ example: 1 })
+  id!: number;
+
+  @ApiProperty({ example: '2024-06-15T09:00:00.000Z' })
+  datetime!: string;
+
+  @ApiProperty({ example: 3 })
+  booked_spots!: number;
+
+  @ApiProperty({ enum: ['AVAILABLE', 'CANCELLED', 'COMPLETED'] })
+  status!: 'AVAILABLE' | 'CANCELLED' | 'COMPLETED';
+
+  @ApiProperty({ example: '2024-01-01T00:00:00Z' })
+  created_at!: string;
+
+  @ApiProperty({ example: '2024-01-01T00:00:00Z' })
+  updated_at!: string;
+}
+
 export class ActivityDto {
   @ApiProperty({ example: 1 })
   id!: number;
@@ -72,4 +121,16 @@ export class ActivityDto {
 
   @ApiProperty({ example: '2024-01-01T00:00:00Z' })
   updated_at!: string;
+
+  @ApiPropertyOptional({ type: () => ActivitySessionDto, isArray: true })
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => ActivitySessionDto)
+  sessions?: ActivitySessionDto[];
+
+  @ApiPropertyOptional({ type: () => ActivityBusinessDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ActivityBusinessDto)
+  business?: ActivityBusinessDto;
 }

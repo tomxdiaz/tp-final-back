@@ -44,7 +44,10 @@ export class UpdateActivityDto {
   @IsString()
   location?: string;
 
-  @ApiPropertyOptional({ example: ['https://example.com/img1.jpg'], isArray: true })
+  @ApiPropertyOptional({
+    example: ['https://example.com/img1.jpg'],
+    isArray: true,
+  })
   @IsOptional()
   @IsArray()
   @IsUrl({}, { each: true })
@@ -101,10 +104,4 @@ export class UpdateActivityDto {
   @IsInt()
   @Min(0)
   min_age?: number;
-
-  @ApiPropertyOptional({ example: 10 })
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  max_participants?: number;
 }

@@ -12,6 +12,7 @@ import { AdminModule } from './admin/admin.module';
 import { ActivityModule } from './activity/activity.module';
 import { BookingModule } from './booking/booking.module';
 import { CategoryModule } from './category/category.module';
+import { ReviewModule } from './review/review.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { CategoryModule } from './category/category.module';
     ActivityModule,
     BookingModule,
     CategoryModule,
+    ReviewModule,
   ],
   controllers: [AppController],
   providers: [AppService],

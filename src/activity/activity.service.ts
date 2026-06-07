@@ -14,12 +14,30 @@ import type { Tables } from '../supabase/database.types';
 import { BusinessService } from '../business/business.service';
 
 type Activity = Tables<'activity'>;
+type ActivitySession = Tables<'activity_session'>;
 
 type ActivityWithCategory = Activity & {
   category: {
     id: number;
     name: string;
   } | null;
+};
+
+type ActivityBusiness = {
+  id: number;
+  app_user_id: string;
+  business_name: string;
+  description: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  verified: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+type ActivityWithCategoryAndSessions = ActivityWithCategory & {
+  sessions?: ActivitySession[];
+  business?: ActivityBusiness | null;
 };
 
 @Injectable()
@@ -199,7 +217,35 @@ export class ActivityService {
 
     const { data, error } = await supabase
       .from('activity')
-      .select(this.activitySelect)
+      .select(`${this.activitySelect}, sessions:activity_session(*), business(*)`)
+      .eq('id', activityId)
+      .maybeSingle();
+
+    if (error) {
+      this.logger.error(`Error finding activity by id: ${error.message}`);
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener la actividad',
+      );
+    }
+
+    if (!data) {
+      throw new NotFoundException('Actividad no encontrada');
+    }
+
+    return this.toActivityDto(data);
+  }
+
+  async findByIdOwner(
+    activityId: number,
+    userId: string,
+  ): Promise<ActivityDto> {
+    const supabase = this.supabaseService.getAdminClient();
+
+    await this.verifyOwnership(activityId, userId);
+
+    const { data, error } = await supabase
+      .from('activity')
+      .select(`${this.activitySelect}, sessions:activity_session(*), business(*)`)
       .eq('id', activityId)
       .maybeSingle();
 
@@ -224,10 +270,67 @@ export class ActivityService {
   ): Promise<ActivityDto> {
     const supabase = this.supabaseService.getAdminClient();
 
-    await this.verifyOwnership(activityId, userId);
+    const currentActivity = await this.verifyOwnership(activityId, userId);
 
     if (dto.category_id !== undefined) {
       await this.validateCategory(dto.category_id);
+    }
+
+    if (dto.days_of_week !== undefined) {
+      const removedDays = currentActivity.days_of_week.filter(
+        (d) => !dto.days_of_week!.includes(d),
+      );
+
+      if (removedDays.length > 0) {
+        const now = new Date().toISOString();
+
+        const { data: futureSessions, error: fsError } = await supabase
+          .from('activity_session')
+          .select('id, datetime')
+          .eq('activity_id', activityId)
+          .gt('datetime', now);
+
+        if (fsError) {
+          this.logger.error(`Error finding sessions: ${fsError.message}`);
+          throw new InternalServerErrorException(
+            'Error inesperado al obtener las sesiones',
+          );
+        }
+
+        const sessionIdsToRemove = (futureSessions ?? [])
+          .filter((s) => {
+            const dow = new Date(s.datetime).getUTCDay();
+            return removedDays.includes(dow);
+          })
+          .map((s) => s.id);
+
+        if (sessionIdsToRemove.length > 0) {
+          const { error: cbError } = await supabase
+            .from('booking')
+            .update({ status: 'CANCELLED' })
+            .in('activity_session_id', sessionIdsToRemove)
+            .neq('status', 'CANCELLED');
+
+          if (cbError) {
+            this.logger.error(`Error cancelling bookings: ${cbError.message}`);
+            throw new InternalServerErrorException(
+              'Error inesperado al cancelar las reservas',
+            );
+          }
+
+          const { error: dsError } = await supabase
+            .from('activity_session')
+            .delete()
+            .in('id', sessionIdsToRemove);
+
+          if (dsError) {
+            this.logger.error(`Error deleting sessions: ${dsError.message}`);
+            throw new InternalServerErrorException(
+              'Error inesperado al eliminar las sesiones',
+            );
+          }
+        }
+      }
     }
 
     const updates: Partial<Activity> = {};
@@ -250,8 +353,6 @@ export class ActivityService {
     if (dto.currency !== undefined) updates.currency = dto.currency;
     if (dto.days_of_week !== undefined) updates.days_of_week = dto.days_of_week;
     if (dto.min_age !== undefined) updates.min_age = dto.min_age;
-    if (dto.max_participants !== undefined)
-      updates.max_participants = dto.max_participants;
 
     const { data, error } = await supabase
       .from('activity')
@@ -287,7 +388,7 @@ export class ActivityService {
 
     const { data, error } = await supabase
       .from('activity')
-      .select(this.activitySelect)
+      .select(`${this.activitySelect}, sessions:activity_session(*), business(*)`)
       .eq('id', activityId)
       .maybeSingle();
 
@@ -373,6 +474,73 @@ export class ActivityService {
     }
 
     return this.toActivityDto(data);
+  }
+
+  async delete(activityId: number, userId: string): Promise<void> {
+    const supabase = this.supabaseService.getAdminClient();
+
+    await this.verifyOwnership(activityId, userId);
+
+    const now = new Date().toISOString();
+
+    const { data: sessions, error: sError } = await supabase
+      .from('activity_session')
+      .select('id, datetime')
+      .eq('activity_id', activityId);
+
+    if (sError) {
+      this.logger.error(`Error finding sessions: ${sError.message}`);
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener las sesiones',
+      );
+    }
+
+    const upcomingSessionIds = (sessions ?? [])
+      .filter((s) => s.datetime > now)
+      .map((s) => s.id);
+
+    if (upcomingSessionIds.length > 0) {
+      const { error: cbError } = await supabase
+        .from('booking')
+        .update({ status: 'CANCELLED' })
+        .in('activity_session_id', upcomingSessionIds)
+        .neq('status', 'CANCELLED');
+
+      if (cbError) {
+        this.logger.error(`Error cancelling bookings: ${cbError.message}`);
+        throw new InternalServerErrorException(
+          'Error inesperado al cancelar las reservas',
+        );
+      }
+    }
+
+    const allSessionIds = (sessions ?? []).map((s) => s.id);
+
+    if (allSessionIds.length > 0) {
+      const { error: dsError } = await supabase
+        .from('activity_session')
+        .delete()
+        .in('id', allSessionIds);
+
+      if (dsError) {
+        this.logger.error(`Error deleting sessions: ${dsError.message}`);
+        throw new InternalServerErrorException(
+          'Error inesperado al eliminar las sesiones',
+        );
+      }
+    }
+
+    const { error: daError } = await supabase
+      .from('activity')
+      .delete()
+      .eq('id', activityId);
+
+    if (daError) {
+      this.logger.error(`Error deleting activity: ${daError.message}`);
+      throw new InternalServerErrorException(
+        'Error inesperado al eliminar la actividad',
+      );
+    }
   }
 
   async activate(activityId: number, userId: string): Promise<ActivityDto> {
@@ -573,7 +741,9 @@ export class ActivityService {
     }
   }
 
-  private toActivityDto(activity: ActivityWithCategory): ActivityDto {
+  private toActivityDto(
+    activity: ActivityWithCategoryAndSessions,
+  ): ActivityDto {
     return {
       id: activity.id,
       business_id: activity.business_id,
@@ -602,6 +772,27 @@ export class ActivityService {
       is_active: activity.is_active,
       created_at: activity.created_at,
       updated_at: activity.updated_at,
+      sessions: activity.sessions?.map((s) => ({
+        id: s.id,
+        datetime: s.datetime,
+        booked_spots: s.booked_spots,
+        status: s.status,
+        created_at: s.created_at,
+        updated_at: s.updated_at,
+      })),
+      business: activity.business
+        ? {
+            id: activity.business.id,
+            app_user_id: activity.business.app_user_id,
+            business_name: activity.business.business_name,
+            description: activity.business.description,
+            contact_email: activity.business.contact_email,
+            contact_phone: activity.business.contact_phone,
+            verified: activity.business.verified,
+            created_at: activity.business.created_at,
+            updated_at: activity.business.updated_at,
+          }
+        : undefined,
     };
   }
 }
