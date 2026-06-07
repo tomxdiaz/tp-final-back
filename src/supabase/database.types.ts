@@ -216,7 +216,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
-          activity_session_id?: number;
+          activity_session_id?: number | null;
           app_user_id?: string;
           created_at?: string;
           customer_notes?: string | null;
