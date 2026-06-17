@@ -88,12 +88,16 @@ export class UpdateActivityDto {
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
+  @Min(-90)
+  @Max(90)
   latitude?: number;
 
   @ApiPropertyOptional({ example: -71.3103 })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
+  @Min(-180)
+  @Max(180)
   longitude?: number;
 
   @ApiPropertyOptional({ enum: ['BAJA', 'MEDIA', 'ALTA', 'EXTREMA'] })
