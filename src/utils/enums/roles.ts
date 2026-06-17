@@ -6,3 +6,11 @@ export const AppRole = {
 } as const;
 
 export type AppRole = Enums<'global_role'>;
+
+export const BookingStatus = {
+  CANCELLED: 'CANCELLED',
+  PENDING: 'PENDING',
+  CONFIRMED: 'CONFIRMED',
+} as const;
+
+export type BookingStatus = Enums<'booking_status'>;

@@ -80,7 +80,7 @@ create table if not exists public.booking (
   activity_session_id integer not null references public.activity_session(id),
   number_of_people    int not null check (number_of_people > 0),
   total_price         numeric(10,2) not null check (total_price >= 0),
-  status              public.booking_status not null default 'PENDING',
+  status              public.booking_status not null default 'CONFIRMED',
   customer_notes      text,
   created_at          timestamptz not null default now(),
   updated_at          timestamptz not null default now()
@@ -90,8 +90,7 @@ create table if not exists public.booking (
 create table if not exists public.review (
   id          serial primary key,
   app_user_id uuid not null references public.app_user(id),
-  activity_id integer not null references public.activity(id),
-  booking_id  integer not null unique references public.booking(id),
+  business_id integer not null references public.business(id) on delete cascade,
   rating      int not null check (rating >= 1 and rating <= 5),
   comment     text,
   created_at  timestamptz not null default now(),

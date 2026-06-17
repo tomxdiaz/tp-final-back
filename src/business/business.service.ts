@@ -7,11 +7,31 @@ import {
 } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { BusinessDto } from './dto/business.dto';
+import { BusinessBookingDto } from './dto/business-booking.dto';
+import { ReviewDto } from '../review/dto/review.dto';
 import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
 import type { Tables } from '../supabase/database.types';
 
 type Business = Tables<'business'>;
+type Review = Tables<'review'>;
+type BusinessWithReviews = Business & { review: Review[] };
+
+type BookingWithJoins = Omit<Tables<'booking'>, 'activity_session_id'> & {
+  activity_session_id: number | null;
+  // non-null because the query uses !inner
+  activity_session: {
+    id: number;
+    datetime: string;
+    activity: { id: number; title: string; business_id: number } | null;
+  };
+  app_user: {
+    id: string;
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+  } | null;
+};
 
 @Injectable()
 export class BusinessService {
@@ -31,7 +51,7 @@ export class BusinessService {
         contact_email: dto.contact_email ?? null,
         contact_phone: dto.contact_phone ?? null,
       })
-      .select('*')
+      .select('*, review(*)')
       .single();
 
     if (error) {
@@ -54,7 +74,7 @@ export class BusinessService {
 
     const { data, error } = await supabase
       .from('business')
-      .select('*')
+      .select('*, review(*)')
       .eq('app_user_id', userId)
       .maybeSingle();
 
@@ -89,7 +109,7 @@ export class BusinessService {
       .from('business')
       .update(updates)
       .eq('app_user_id', userId)
-      .select('*')
+      .select('*, review(*)')
       .maybeSingle();
 
     if (error) {
@@ -109,7 +129,7 @@ export class BusinessService {
 
     const { data, error } = await supabase
       .from('business')
-      .select('*')
+      .select('*, review(*)')
       .eq('verified', true)
       .order('id', { ascending: true });
 
@@ -128,7 +148,7 @@ export class BusinessService {
 
     const { data, error } = await supabase
       .from('business')
-      .select('*')
+      .select('*, review(*)')
       .order('id', { ascending: true });
 
     if (error) {
@@ -140,7 +160,9 @@ export class BusinessService {
       );
     }
 
-    return (data ?? []).map((b) => this.toBusinessDto(b));
+    return (data ?? []).map((b) =>
+      this.toBusinessDto(b as unknown as BusinessWithReviews),
+    );
   }
 
   async findPublicById(businessId: number): Promise<BusinessDto> {
@@ -148,7 +170,7 @@ export class BusinessService {
 
     const { data, error } = await supabase
       .from('business')
-      .select('*')
+      .select('*, review(*)')
       .eq('id', businessId)
       .eq('verified', true)
       .maybeSingle();
@@ -165,6 +187,67 @@ export class BusinessService {
     return this.toBusinessDto(data);
   }
 
+  async findMyBookings(userId: string): Promise<BusinessBookingDto[]> {
+    const supabase = this.supabaseService.getAdminClient();
+
+    const { data: business, error: bError } = await supabase
+      .from('business')
+      .select('id')
+      .eq('app_user_id', userId)
+      .maybeSingle();
+
+    if (bError) {
+      this.logger.error(`Error finding business: ${bError.message}`);
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener el perfil de negocio',
+      );
+    }
+
+    if (!business)
+      throw new NotFoundException('Perfil de negocio no encontrado');
+
+    const { data: bookingsRaw, error: bookError } = await supabase
+      .from('booking')
+      .select(
+        '*, activity_session!inner(id, datetime, activity!inner(id, title, business_id)), app_user(id, email, first_name, last_name)',
+      )
+      .eq('activity_session.activity.business_id', business.id)
+      .order('created_at', { ascending: false });
+
+    if (bookError) {
+      this.logger.error(`Error finding bookings: ${bookError.message}`);
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener las reservas',
+      );
+    }
+
+    const bookings = (bookingsRaw ?? []) as unknown as BookingWithJoins[];
+
+    return bookings.map((b) => ({
+      id: b.id,
+      app_user: {
+        id: b.app_user?.id ?? '',
+        email: b.app_user?.email ?? '',
+        first_name: b.app_user?.first_name ?? null,
+        last_name: b.app_user?.last_name ?? null,
+      },
+      activity_session: {
+        id: b.activity_session.id,
+        datetime: b.activity_session.datetime,
+        activity: {
+          id: b.activity_session.activity?.id ?? 0,
+          title: b.activity_session.activity?.title ?? '',
+        },
+      },
+      number_of_people: b.number_of_people,
+      total_price: b.total_price,
+      status: b.status,
+      customer_notes: b.customer_notes ?? null,
+      created_at: b.created_at,
+      updated_at: b.updated_at,
+    }));
+  }
+
   async verifyBusiness(businessId: number): Promise<BusinessDto> {
     const supabase = this.supabaseService.getAdminClient();
 
@@ -172,7 +255,7 @@ export class BusinessService {
       .from('business')
       .update({ verified: true })
       .eq('id', businessId)
-      .select('*')
+      .select('*, review(*)')
       .maybeSingle();
 
     if (error) {
@@ -281,7 +364,7 @@ export class BusinessService {
       .from('business')
       .update({ verified: false })
       .eq('id', businessId)
-      .select('*')
+      .select('*, review(*)')
       .maybeSingle();
 
     if (error) {
@@ -296,7 +379,7 @@ export class BusinessService {
     return this.toBusinessDto(data);
   }
 
-  private toBusinessDto(business: Business): BusinessDto {
+  private toBusinessDto(business: BusinessWithReviews): BusinessDto {
     return {
       id: business.id,
       app_user_id: business.app_user_id,
@@ -307,6 +390,19 @@ export class BusinessService {
       verified: business.verified,
       created_at: business.created_at,
       updated_at: business.updated_at,
+      reviews: (business.review ?? []).map((r) => this.toReviewDto(r)),
+    };
+  }
+
+  private toReviewDto(review: Review): ReviewDto {
+    return {
+      id: review.id,
+      business_id: review.business_id,
+      app_user_id: review.app_user_id,
+      rating: review.rating,
+      comment: review.comment ?? null,
+      created_at: review.created_at,
+      updated_at: review.updated_at,
     };
   }
 }
