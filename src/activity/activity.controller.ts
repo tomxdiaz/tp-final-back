@@ -33,6 +33,7 @@ import { ActivityService } from './activity.service';
 import { ActivityDto } from './dto/activity.dto';
 import { CreateActivityDto } from './dto/create-activity.dto';
 import { UpdateActivityDto } from './dto/update-activity.dto';
+import { SessionDetailDto } from './dto/session-detail.dto';
 import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
 import { OptionalSupabaseAuthGuard } from '../auth/guards/optional-supabase-auth.guard';
 import { CurrentAppUser } from '../auth/decorators/current-app-user.decorator';
@@ -237,6 +238,23 @@ export class ActivityController {
     @CurrentAppUser appUser: AppUser,
   ): Promise<ActivityDto> {
     return await this.activityService.findByIdOwner(id, appUser.id);
+  }
+
+  @Get(':id/session/:sessionId')
+  @ApiBearerAuth()
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({ summary: 'Detalle de una sesión con sus reservas (solo el dueño)' })
+  @ApiOkResponse({ type: SessionDetailDto })
+  @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
+  @ApiForbiddenResponse({ description: 'No es el dueño de la actividad' })
+  @ApiNotFoundResponse({ description: 'Actividad o sesión no encontrada' })
+  @ApiInternalServerErrorResponse({ description: 'Error interno' })
+  async findSessionDetail(
+    @Param('id', ParseIntPipe) activityId: number,
+    @Param('sessionId', ParseIntPipe) sessionId: number,
+    @CurrentAppUser appUser: AppUser,
+  ): Promise<SessionDetailDto> {
+    return this.activityService.findSessionDetail(activityId, sessionId, appUser.id);
   }
 
   @Get('/business/:businessId')

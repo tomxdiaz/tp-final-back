@@ -1,10 +1,11 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, MaxLength, ValidateIf } from 'class-validator';
 
 export class UpdateBusinessDto {
   @ApiPropertyOptional({ example: 'Aventuras del Sur' })
   @IsOptional()
   @IsString()
+  @IsNotEmpty()
   @MaxLength(200)
   business_name?: string;
 
@@ -15,6 +16,7 @@ export class UpdateBusinessDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @ValidateIf((o) => o.contact_email !== '' && o.contact_email != null)
   @IsEmail()
   contact_email?: string;
 

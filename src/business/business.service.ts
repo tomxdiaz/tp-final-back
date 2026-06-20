@@ -101,11 +101,12 @@ export class BusinessService {
     const updates: Partial<Business> = {};
     if (dto.business_name !== undefined)
       updates.business_name = dto.business_name;
-    if (dto.description !== undefined) updates.description = dto.description;
+    if (dto.description !== undefined)
+      updates.description = dto.description || null;
     if (dto.contact_email !== undefined)
-      updates.contact_email = dto.contact_email;
+      updates.contact_email = dto.contact_email || null;
     if (dto.contact_phone !== undefined)
-      updates.contact_phone = dto.contact_phone;
+      updates.contact_phone = dto.contact_phone || null;
 
     const { data, error } = await supabase
       .from('business')
