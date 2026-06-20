@@ -34,6 +34,7 @@ import { ActivityDto } from './dto/activity.dto';
 import { CreateActivityDto } from './dto/create-activity.dto';
 import { UpdateActivityDto } from './dto/update-activity.dto';
 import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
+import { OptionalSupabaseAuthGuard } from '../auth/guards/optional-supabase-auth.guard';
 import { CurrentAppUser } from '../auth/decorators/current-app-user.decorator';
 import type { Tables } from '../supabase/database.types';
 import type { UploadedImage } from '../supabase/supabase.service';
@@ -97,12 +98,16 @@ export class ActivityController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Obtener actividad por id (público)' })
+  @UseGuards(OptionalSupabaseAuthGuard)
+  @ApiOperation({ summary: 'Obtener actividad por id (público, auth opcional)' })
   @ApiOkResponse({ type: ActivityDto })
   @ApiNotFoundResponse({ description: 'Actividad no encontrada' })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
-  async findById(@Param('id', ParseIntPipe) id: number): Promise<ActivityDto> {
-    return this.activityService.findById(id);
+  async findById(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentAppUser appUser: AppUser | undefined,
+  ): Promise<ActivityDto> {
+    return this.activityService.findById(id, appUser?.id);
   }
 
   @Patch(':id')
