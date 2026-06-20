@@ -27,15 +27,15 @@ export class ReviewController {
   @Post()
   @ApiBearerAuth()
   @UseGuards(SupabaseAuthGuard)
-  @ApiOperation({ summary: 'Dejar una reseña para un negocio' })
+  @ApiOperation({ summary: 'Dejar una reseña para una actividad' })
   @ApiCreatedResponse({ type: ReviewDto })
   @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
   @ApiForbiddenResponse({
-    description: 'No tenés una reserva en este negocio',
+    description: 'No tenés una reserva confirmada en esta actividad',
   })
-  @ApiNotFoundResponse({ description: 'Negocio no encontrado' })
+  @ApiNotFoundResponse({ description: 'Actividad no encontrada' })
   @ApiConflictResponse({
-    description: 'Ya dejaste una reseña para este negocio',
+    description: 'Ya dejaste una reseña para esta actividad',
   })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
   async create(

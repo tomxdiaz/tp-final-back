@@ -397,6 +397,7 @@ export class BusinessService {
   private toReviewDto(review: Review): ReviewDto {
     return {
       id: review.id,
+      activity_id: review.activity_id,
       business_id: review.business_id,
       app_user_id: review.app_user_id,
       rating: review.rating,

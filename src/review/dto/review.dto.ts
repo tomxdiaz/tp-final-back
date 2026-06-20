@@ -8,6 +8,10 @@ export class ReviewDto {
 
   @ApiProperty({ example: 1 })
   @IsNumber()
+  activity_id!: number;
+
+  @ApiProperty({ example: 1 })
+  @IsNumber()
   business_id!: number;
 
   @ApiProperty({ format: 'uuid' })

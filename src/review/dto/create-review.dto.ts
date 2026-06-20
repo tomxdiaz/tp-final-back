@@ -4,7 +4,7 @@ import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 export class CreateReviewDto {
   @ApiProperty({ example: 1 })
   @IsInt()
-  business_id!: number;
+  activity_id!: number;
 
   @ApiProperty({ example: 4, minimum: 1, maximum: 5 })
   @IsInt()
