@@ -319,6 +319,7 @@ export type Database = {
       };
       review: {
         Row: {
+          activity_id: number;
           app_user_id: string;
           business_id: number;
           comment: string | null;
@@ -328,6 +329,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          activity_id: number;
           app_user_id: string;
           business_id: number;
           comment?: string | null;
@@ -337,6 +339,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          activity_id?: number;
           app_user_id?: string;
           business_id?: number;
           comment?: string | null;
@@ -346,6 +349,13 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: 'review_activity_id_fkey';
+            columns: ['activity_id'];
+            isOneToOne: false;
+            referencedRelation: 'activity';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'review_app_user_id_fkey';
             columns: ['app_user_id'];
