@@ -14,7 +14,9 @@ import { UpdateBusinessDto } from './dto/update-business.dto';
 import type { Tables } from '../supabase/database.types';
 
 type Business = Tables<'business'>;
-type Review = Tables<'review'>;
+type Review = Tables<'review'> & {
+  activity?: { id: number; title: string } | null;
+};
 type BusinessWithReviews = Business & { review: Review[] };
 
 type BookingWithJoins = Omit<Tables<'booking'>, 'activity_session_id'> & {
@@ -51,7 +53,7 @@ export class BusinessService {
         contact_email: dto.contact_email ?? null,
         contact_phone: dto.contact_phone ?? null,
       })
-      .select('*, review(*)')
+      .select('*, review(*, activity:activity_id(id, title))')
       .single();
 
     if (error) {
@@ -74,7 +76,7 @@ export class BusinessService {
 
     const { data, error } = await supabase
       .from('business')
-      .select('*, review(*)')
+      .select('*, review(*, activity:activity_id(id, title))')
       .eq('app_user_id', userId)
       .maybeSingle();
 
@@ -109,7 +111,7 @@ export class BusinessService {
       .from('business')
       .update(updates)
       .eq('app_user_id', userId)
-      .select('*, review(*)')
+      .select('*, review(*, activity:activity_id(id, title))')
       .maybeSingle();
 
     if (error) {
@@ -129,7 +131,7 @@ export class BusinessService {
 
     const { data, error } = await supabase
       .from('business')
-      .select('*, review(*)')
+      .select('*, review(*, activity:activity_id(id, title))')
       .eq('verified', true)
       .order('id', { ascending: true });
 
@@ -148,7 +150,7 @@ export class BusinessService {
 
     const { data, error } = await supabase
       .from('business')
-      .select('*, review(*)')
+      .select('*, review(*, activity:activity_id(id, title))')
       .order('id', { ascending: true });
 
     if (error) {
@@ -170,7 +172,7 @@ export class BusinessService {
 
     const { data, error } = await supabase
       .from('business')
-      .select('*, review(*)')
+      .select('*, review(*, activity:activity_id(id, title))')
       .eq('id', businessId)
       .eq('verified', true)
       .maybeSingle();
@@ -255,7 +257,7 @@ export class BusinessService {
       .from('business')
       .update({ verified: true })
       .eq('id', businessId)
-      .select('*, review(*)')
+      .select('*, review(*, activity:activity_id(id, title))')
       .maybeSingle();
 
     if (error) {
@@ -364,7 +366,7 @@ export class BusinessService {
       .from('business')
       .update({ verified: false })
       .eq('id', businessId)
-      .select('*, review(*)')
+      .select('*, review(*, activity:activity_id(id, title))')
       .maybeSingle();
 
     if (error) {
@@ -404,6 +406,7 @@ export class BusinessService {
       comment: review.comment ?? null,
       created_at: review.created_at,
       updated_at: review.updated_at,
+      activity: review.activity ?? undefined,
     };
   }
 }
