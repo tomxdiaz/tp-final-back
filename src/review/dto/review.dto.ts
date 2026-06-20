@@ -32,4 +32,10 @@ export class ReviewDto {
 
   @ApiProperty({ example: '2024-01-01T00:00:00Z' })
   updated_at!: string;
+
+  @ApiPropertyOptional({
+    example: { id: 1, title: 'Trekking en la Patagonia' },
+  })
+  @IsOptional()
+  activity?: { id: number; title: string };
 }
