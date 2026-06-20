@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { BookingAppUserDto } from '../../business/dto/business-booking.dto';
+import { BookingPersonDto } from './create-booking.dto';
 
 export class BookingBusinessDto {
   @ApiProperty({ example: 1 })
@@ -145,6 +146,9 @@ export class BookingDto {
 
   @ApiPropertyOptional({ example: 'Somos dos adultos y una niña' })
   customer_notes!: string | null;
+
+  @ApiPropertyOptional({ type: [BookingPersonDto] })
+  participants!: BookingPersonDto[] | null;
 
   @ApiProperty({ example: '2024-01-01T00:00:00Z' })
   created_at!: string;

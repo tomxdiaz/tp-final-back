@@ -1,5 +1,23 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsArray,
+  IsInt,
+  IsOptional,
+  IsString,
+  Min,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class BookingPersonDto {
+  @ApiProperty({ example: 'Juan Pérez' })
+  @IsString()
+  name!: string;
+
+  @ApiProperty({ example: '45746767' })
+  @IsString()
+  dni!: string;
+}
 
 export class CreateBookingDto {
   @ApiProperty({ example: 1 })
@@ -15,4 +33,11 @@ export class CreateBookingDto {
   @IsOptional()
   @IsString()
   customer_notes?: string;
+
+  @ApiPropertyOptional({ type: [BookingPersonDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => BookingPersonDto)
+  participants?: BookingPersonDto[];
 }

@@ -8,8 +8,9 @@ import {
 } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { BookingDto } from './dto/booking.dto';
-import { CreateBookingDto } from './dto/create-booking.dto';
+import { BookingPersonDto, CreateBookingDto } from './dto/create-booking.dto';
 import { BookingStatus } from '../utils/enums/roles';
+import type { Json } from '../supabase/database.types';
 
 type BookingWithJoins = {
   id: number;
@@ -19,6 +20,7 @@ type BookingWithJoins = {
   total_price: number;
   status: BookingStatus;
   customer_notes: string | null;
+  participants: Json | null;
   created_at: string;
   updated_at: string;
   activity_session: {
@@ -110,6 +112,15 @@ export class BookingService {
       }
     }
 
+    if (
+      dto.participants !== undefined &&
+      dto.participants.length !== dto.number_of_people
+    ) {
+      throw new BadRequestException(
+        `La cantidad de participantes (${dto.participants.length}) debe coincidir con el número de personas (${dto.number_of_people})`,
+      );
+    }
+
     const total_price = session.activity.base_price * dto.number_of_people;
 
     const { data, error } = await supabase
@@ -119,7 +130,9 @@ export class BookingService {
         activity_session_id: dto.activity_session_id,
         number_of_people: dto.number_of_people,
         total_price,
+        status: BookingStatus.PENDING,
         customer_notes: dto.customer_notes ?? null,
+        participants: (dto.participants ?? null) as Json,
       })
       .select('id')
       .single();
@@ -222,6 +235,59 @@ export class BookingService {
           );
         }
       }
+    }
+
+    return this.fetchWithJoins(bookingId);
+  }
+
+  async confirm(bookingId: number, userId: string): Promise<BookingDto> {
+    const supabase = this.supabaseService.getAdminClient();
+
+    const { data: booking, error } = await supabase
+      .from('booking')
+      .select(
+        'id, status, activity_session_id, activity_session(activity(business(app_user_id)))',
+      )
+      .eq('id', bookingId)
+      .maybeSingle();
+
+    if (error) {
+      this.logger.error(`Error finding booking: ${error.message}`);
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener la reserva',
+      );
+    }
+    if (!booking) throw new NotFoundException('Reserva no encontrada');
+
+    const businessOwnerId =
+      booking.activity_session?.activity?.business?.app_user_id;
+
+    if (!businessOwnerId || businessOwnerId !== userId) {
+      throw new ForbiddenException(
+        'No tenés permiso para confirmar esta reserva',
+      );
+    }
+
+    if (booking.status === BookingStatus.CONFIRMED) {
+      throw new BadRequestException('La reserva ya está confirmada');
+    }
+
+    if (booking.status === BookingStatus.CANCELLED) {
+      throw new BadRequestException(
+        'No se puede confirmar una reserva cancelada',
+      );
+    }
+
+    const { error: uError } = await supabase
+      .from('booking')
+      .update({ status: BookingStatus.CONFIRMED })
+      .eq('id', bookingId);
+
+    if (uError) {
+      this.logger.error(`Error confirming booking: ${uError.message}`);
+      throw new InternalServerErrorException(
+        'Error inesperado al confirmar la reserva',
+      );
     }
 
     return this.fetchWithJoins(bookingId);
@@ -371,6 +437,7 @@ export class BookingService {
       total_price: b.total_price,
       status: b.status,
       customer_notes: b.customer_notes ?? null,
+      participants: (b.participants as BookingPersonDto[] | null) ?? null,
       created_at: b.created_at,
       updated_at: b.updated_at,
     };

@@ -72,6 +72,21 @@ export class BookingController {
     return await this.bookingService.create(appUser.id, dto);
   }
 
+  @Post(':id/confirm')
+  @ApiOperation({ summary: 'Confirmar una reserva (solo el dueño del negocio)' })
+  @ApiOkResponse({ type: BookingDto })
+  @ApiBadRequestResponse({ description: 'La reserva ya está confirmada o está cancelada' })
+  @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
+  @ApiForbiddenResponse({ description: 'No es el dueño del negocio de la actividad' })
+  @ApiNotFoundResponse({ description: 'Reserva no encontrada' })
+  @ApiInternalServerErrorResponse({ description: 'Error interno' })
+  async confirm(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentAppUser appUser: AppUser,
+  ): Promise<BookingDto> {
+    return await this.bookingService.confirm(id, appUser.id);
+  }
+
   @Post(':id/cancel')
   @ApiOperation({ summary: 'Cancelar una reserva (solo el dueño)' })
   @ApiOkResponse({ type: BookingDto })

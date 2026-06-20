@@ -200,6 +200,7 @@ export type Database = {
           customer_notes: string | null;
           id: number;
           number_of_people: number;
+          participants: Json | null;
           status: Database['public']['Enums']['booking_status'];
           total_price: number;
           updated_at: string;
@@ -211,6 +212,7 @@ export type Database = {
           customer_notes?: string | null;
           id?: number;
           number_of_people: number;
+          participants?: Json | null;
           status?: Database['public']['Enums']['booking_status'];
           total_price: number;
           updated_at?: string;
@@ -222,6 +224,7 @@ export type Database = {
           customer_notes?: string | null;
           id?: number;
           number_of_people?: number;
+          participants?: Json | null;
           status?: Database['public']['Enums']['booking_status'];
           total_price?: number;
           updated_at?: string;

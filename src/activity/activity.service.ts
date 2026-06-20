@@ -400,13 +400,27 @@ export class ActivityService {
 
   async renew(activityId: number, userId: string): Promise<ActivityDto> {
     const activity = await this.verifyOwnership(activityId, userId);
+    const supabase = this.supabaseService.getAdminClient();
+
+    const now = new Date().toISOString();
+    const { error: delError } = await supabase
+      .from('activity_session')
+      .delete()
+      .eq('activity_id', activityId)
+      .lt('datetime', now);
+
+    if (delError) {
+      this.logger.error(`Error deleting past sessions: ${delError.message}`);
+      throw new InternalServerErrorException(
+        'Error inesperado al limpiar las sesiones pasadas',
+      );
+    }
+
     await this.createSessionsForActivity(
       activity.id,
       activity.days_of_week,
       activity.starting_hour,
     );
-
-    const supabase = this.supabaseService.getAdminClient();
 
     const { data, error } = await supabase
       .from('activity')
@@ -711,7 +725,7 @@ export class ActivityService {
     const now = new Date();
 
     const end = new Date();
-    end.setUTCDate(now.getUTCDate() + 30);
+    end.setUTCDate(now.getUTCDate() + 90);
 
     const current = new Date(now);
     current.setUTCHours(0, 0, 0, 0);
@@ -789,7 +803,9 @@ export class ActivityService {
       is_active: activity.is_active,
       created_at: activity.created_at,
       updated_at: activity.updated_at,
-      sessions: activity.sessions?.map((s) => ({
+      sessions: activity.sessions
+        ?.filter((s) => new Date(s.datetime) > new Date())
+        .map((s) => ({
         id: s.id,
         datetime: s.datetime,
         booked_spots: s.booked_spots,
