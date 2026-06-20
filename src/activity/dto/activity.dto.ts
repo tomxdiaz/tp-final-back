@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CategoryDto } from '../../category/dto/category.dto';
 import { Type } from 'class-transformer';
 import { IsOptional, ValidateNested } from 'class-validator';
+import { ReviewDto } from '../../review/dto/review.dto';
 
 export class ActivityBusinessDto {
   @ApiProperty({ example: 1 })
@@ -133,4 +134,14 @@ export class ActivityDto {
   @ValidateNested()
   @Type(() => ActivityBusinessDto)
   business?: ActivityBusinessDto;
+
+  @ApiPropertyOptional({ type: () => ReviewDto, isArray: true })
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => ReviewDto)
+  reviews?: ReviewDto[];
+
+  @ApiPropertyOptional({ example: true })
+  @IsOptional()
+  has_confirmed_booking?: boolean;
 }
