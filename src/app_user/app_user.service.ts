@@ -115,11 +115,14 @@ export class AppUserService {
   async updateMe(userId: string, dto: UpdateMeDto): Promise<AppUserDto> {
     const supabase = this.supabaseService.getAdminClient();
 
-    const updates: { first_name?: string; last_name?: string; phone?: string } =
-      {};
-    if (dto.first_name !== undefined) updates.first_name = dto.first_name;
-    if (dto.last_name !== undefined) updates.last_name = dto.last_name;
-    if (dto.phone !== undefined) updates.phone = dto.phone;
+    const updates: {
+      first_name?: string | null;
+      last_name?: string | null;
+      phone?: string | null;
+    } = {};
+    if (dto.first_name !== undefined) updates.first_name = dto.first_name || null;
+    if (dto.last_name !== undefined) updates.last_name = dto.last_name || null;
+    if (dto.phone !== undefined) updates.phone = dto.phone || null;
 
     const { data, error } = await supabase
       .from('app_user')

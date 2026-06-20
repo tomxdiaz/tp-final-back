@@ -11,6 +11,7 @@ import type { UploadedImage } from '../supabase/supabase.service';
 import { ActivityDto } from './dto/activity.dto';
 import { CreateActivityDto } from './dto/create-activity.dto';
 import { UpdateActivityDto } from './dto/update-activity.dto';
+import { SessionDetailDto } from './dto/session-detail.dto';
 import type { Tables } from '../supabase/database.types';
 import { BusinessService } from '../business/business.service';
 
@@ -634,6 +635,102 @@ export class ActivityService {
     );
 
     return this.toActivityDto(data);
+  }
+
+  async findSessionDetail(
+    activityId: number,
+    sessionId: number,
+    userId: string,
+  ): Promise<SessionDetailDto> {
+    const activity = await this.verifyOwnership(activityId, userId);
+
+    const supabase = this.supabaseService.getAdminClient();
+
+    const { data: session, error: sError } = await supabase
+      .from('activity_session')
+      .select('*')
+      .eq('id', sessionId)
+      .eq('activity_id', activityId)
+      .maybeSingle();
+
+    if (sError) {
+      this.logger.error(`Error finding session: ${sError.message}`);
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener la sesión',
+      );
+    }
+    if (!session) {
+      throw new NotFoundException('Sesión no encontrada');
+    }
+
+    const { data: bookings, error: bError } = await supabase
+      .from('booking')
+      .select('*, app_user:app_user_id(id, email, first_name, last_name)')
+      .eq('activity_session_id', sessionId)
+      .order('created_at', { ascending: true });
+
+    if (bError) {
+      this.logger.error(`Error finding session bookings: ${bError.message}`);
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener las reservas de la sesión',
+      );
+    }
+
+    const remaining_spots =
+      activity.max_participants != null
+        ? activity.max_participants - session.booked_spots
+        : null;
+
+    return {
+      id: session.id,
+      activity_id: session.activity_id,
+      datetime: session.datetime,
+      booked_spots: session.booked_spots,
+      remaining_spots,
+      status: session.status,
+      activity: {
+        id: activity.id,
+        title: activity.title,
+        description: activity.description ?? null,
+        base_price: activity.base_price,
+        currency: activity.currency,
+        max_participants: activity.max_participants ?? null,
+        location: activity.location ?? null,
+        duration_minutes: activity.duration_minutes ?? null,
+        difficulty: activity.difficulty ?? null,
+        images: activity.images,
+        meeting_point: activity.meeting_point ?? null,
+      },
+      bookings: (bookings ?? []).map((b) => {
+        const user = b.app_user as {
+          id: string;
+          email: string;
+          first_name: string | null;
+          last_name: string | null;
+        };
+        const parts = b.participants as
+          | { name: string; dni: string }[]
+          | null;
+        return {
+          id: b.id,
+          app_user: {
+            id: user.id,
+            email: user.email,
+            first_name: user.first_name ?? null,
+            last_name: user.last_name ?? null,
+          },
+          number_of_people: b.number_of_people,
+          total_price: b.total_price,
+          status: b.status,
+          customer_notes: b.customer_notes ?? null,
+          participants: parts ?? null,
+          created_at: b.created_at,
+          updated_at: b.updated_at,
+        };
+      }),
+      created_at: session.created_at,
+      updated_at: session.updated_at,
+    };
   }
 
   private async verifyOwnership(
