@@ -39,7 +39,7 @@ export class ReviewController {
   })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
   async create(
-    @CurrentAppUser() appUser: AppUser,
+    @CurrentAppUser appUser: AppUser,
     @Body() dto: CreateReviewDto,
   ): Promise<ReviewDto> {
     return this.reviewService.create(appUser.id, dto);
