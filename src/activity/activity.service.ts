@@ -16,6 +16,7 @@ import { BusinessService } from '../business/business.service';
 
 type Activity = Tables<'activity'>;
 type ActivitySession = Tables<'activity_session'>;
+type Review = Tables<'review'>;
 
 type ActivityWithCategory = Activity & {
   category: {
@@ -39,6 +40,7 @@ type ActivityBusiness = {
 type ActivityWithCategoryAndSessions = ActivityWithCategory & {
   sessions?: ActivitySession[];
   business?: ActivityBusiness | null;
+  review?: Review[];
 };
 
 @Injectable()
@@ -220,13 +222,16 @@ export class ActivityService {
     return (data ?? []).map((a) => this.toActivityDto(a));
   }
 
-  async findById(activityId: number): Promise<ActivityDto> {
+  async findById(
+    activityId: number,
+    userId?: string,
+  ): Promise<ActivityDto> {
     const supabase = this.supabaseService.getAdminClient();
 
     const { data, error } = await supabase
       .from('activity')
       .select(
-        `${this.activitySelect}, sessions:activity_session(*), business(*)`,
+        `${this.activitySelect}, sessions:activity_session(*), business(*), review(*)`,
       )
       .eq('id', activityId)
       .maybeSingle();
@@ -242,7 +247,24 @@ export class ActivityService {
       throw new NotFoundException('Actividad no encontrada');
     }
 
-    return this.toActivityDto(data);
+    const dto = this.toActivityDto(data);
+
+    if (userId) {
+      const { data: booking, error: bkError } = await supabase
+        .from('booking')
+        .select('id, activity_session!inner(activity_id)')
+        .eq('app_user_id', userId)
+        .eq('activity_session.activity_id', activityId)
+        .eq('status', 'CONFIRMED')
+        .limit(1)
+        .maybeSingle();
+
+      if (!bkError) {
+        dto.has_confirmed_booking = !!booking;
+      }
+    }
+
+    return dto;
   }
 
   async findByIdOwner(
@@ -826,6 +848,16 @@ export class ActivityService {
             updated_at: activity.business.updated_at,
           }
         : undefined,
+      reviews: (activity.review ?? []).map((r) => ({
+        id: r.id,
+        activity_id: r.activity_id,
+        business_id: r.business_id,
+        app_user_id: r.app_user_id,
+        rating: r.rating,
+        comment: r.comment ?? null,
+        created_at: r.created_at,
+        updated_at: r.updated_at,
+      })),
     };
   }
 }
