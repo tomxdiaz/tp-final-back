@@ -103,9 +103,7 @@ export class ActivityController {
   @ApiOkResponse({ type: ActivityDto })
   @ApiNotFoundResponse({ description: 'Actividad no encontrada' })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
-  async findById(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<ActivityDto> {
+  async findById(@Param('id', ParseIntPipe) id: number): Promise<ActivityDto> {
     return this.activityService.findById(id);
   }
 
@@ -259,7 +257,9 @@ export class ActivityController {
   @Get(':id/session/:sessionId')
   @ApiBearerAuth()
   @UseGuards(SupabaseAuthGuard)
-  @ApiOperation({ summary: 'Detalle de una sesión con sus reservas (solo el dueño)' })
+  @ApiOperation({
+    summary: 'Detalle de una sesión con sus reservas (solo el dueño)',
+  })
   @ApiOkResponse({ type: SessionDetailDto })
   @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
   @ApiForbiddenResponse({ description: 'No es el dueño de la actividad' })
@@ -270,7 +270,11 @@ export class ActivityController {
     @Param('sessionId', ParseIntPipe) sessionId: number,
     @CurrentAppUser appUser: AppUser,
   ): Promise<SessionDetailDto> {
-    return this.activityService.findSessionDetail(activityId, sessionId, appUser.id);
+    return this.activityService.findSessionDetail(
+      activityId,
+      sessionId,
+      appUser.id,
+    );
   }
 
   @Get('/business/:businessId')
