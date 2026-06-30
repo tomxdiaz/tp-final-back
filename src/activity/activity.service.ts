@@ -12,6 +12,7 @@ import { ActivityDto } from './dto/activity.dto';
 import { CreateActivityDto } from './dto/create-activity.dto';
 import { UpdateActivityDto } from './dto/update-activity.dto';
 import { SessionDetailDto } from './dto/session-detail.dto';
+import { ReviewEligibilityDto } from './dto/review-eligibility.dto';
 import type { Tables } from '../supabase/database.types';
 import { BusinessService } from '../business/business.service';
 
@@ -223,10 +224,7 @@ export class ActivityService {
     return (data ?? []).map((a) => this.toActivityDto(a));
   }
 
-  async findById(
-    activityId: number,
-    userId?: string,
-  ): Promise<ActivityDto> {
+  async findById(activityId: number): Promise<ActivityDto> {
     const supabase = this.supabaseService.getAdminClient();
 
     const { data, error } = await supabase
@@ -248,24 +246,53 @@ export class ActivityService {
       throw new NotFoundException('Actividad no encontrada');
     }
 
-    const dto = this.toActivityDto(data);
+    return this.toActivityDto(data);
+  }
 
-    if (userId) {
-      const { data: booking, error: bkError } = await supabase
-        .from('booking')
-        .select('id, activity_session!inner(activity_id)')
-        .eq('app_user_id', userId)
-        .eq('activity_session.activity_id', activityId)
-        .eq('status', 'CONFIRMED')
-        .limit(1)
-        .maybeSingle();
+  async getReviewEligibility(
+    activityId: number,
+    userId: string,
+  ): Promise<ReviewEligibilityDto> {
+    const supabase = this.supabaseService.getAdminClient();
 
-      if (!bkError) {
-        dto.has_confirmed_booking = !!booking;
-      }
+    const { data: activity, error: activityError } = await supabase
+      .from('activity')
+      .select('id')
+      .eq('id', activityId)
+      .maybeSingle();
+
+    if (activityError) {
+      this.logger.error(
+        `Error checking review eligibility: ${activityError.message}`,
+      );
+      throw new InternalServerErrorException(
+        'Error inesperado al obtener la actividad',
+      );
     }
 
-    return dto;
+    if (!activity) {
+      throw new NotFoundException('Actividad no encontrada');
+    }
+
+    const { data: booking, error: bkError } = await supabase
+      .from('booking')
+      .select('id, activity_session!inner(activity_id)')
+      .eq('app_user_id', userId)
+      .eq('activity_session.activity_id', activityId)
+      .eq('status', 'CONFIRMED')
+      .limit(1)
+      .maybeSingle();
+
+    if (bkError) {
+      this.logger.error(
+        `Error checking confirmed booking: ${bkError.message}`,
+      );
+      throw new InternalServerErrorException(
+        'Error inesperado al verificar la reserva',
+      );
+    }
+
+    return { has_confirmed_booking: !!booking };
   }
 
   async findByIdOwner(

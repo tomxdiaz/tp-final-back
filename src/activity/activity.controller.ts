@@ -34,8 +34,8 @@ import { ActivityDto } from './dto/activity.dto';
 import { CreateActivityDto } from './dto/create-activity.dto';
 import { UpdateActivityDto } from './dto/update-activity.dto';
 import { SessionDetailDto } from './dto/session-detail.dto';
+import { ReviewEligibilityDto } from './dto/review-eligibility.dto';
 import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
-import { OptionalSupabaseAuthGuard } from '../auth/guards/optional-supabase-auth.guard';
 import { CurrentAppUser } from '../auth/decorators/current-app-user.decorator';
 import type { Tables } from '../supabase/database.types';
 import type { UploadedImage } from '../supabase/supabase.service';
@@ -99,16 +99,32 @@ export class ActivityController {
   }
 
   @Get(':id')
-  @UseGuards(OptionalSupabaseAuthGuard)
-  @ApiOperation({ summary: 'Obtener actividad por id (público, auth opcional)' })
+  @ApiOperation({ summary: 'Obtener actividad por id (público)' })
   @ApiOkResponse({ type: ActivityDto })
   @ApiNotFoundResponse({ description: 'Actividad no encontrada' })
   @ApiInternalServerErrorResponse({ description: 'Error interno' })
   async findById(
     @Param('id', ParseIntPipe) id: number,
-    @CurrentAppUser appUser: AppUser | undefined,
   ): Promise<ActivityDto> {
-    return this.activityService.findById(id, appUser?.id);
+    return this.activityService.findById(id);
+  }
+
+  @Get(':id/review-eligibility')
+  @ApiBearerAuth()
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({
+    summary:
+      'Indica si el usuario autenticado puede dejar una reseña (reserva confirmada)',
+  })
+  @ApiOkResponse({ type: ReviewEligibilityDto })
+  @ApiUnauthorizedResponse({ description: 'Token inválido o no enviado' })
+  @ApiNotFoundResponse({ description: 'Actividad no encontrada' })
+  @ApiInternalServerErrorResponse({ description: 'Error interno' })
+  async getReviewEligibility(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentAppUser appUser: AppUser,
+  ): Promise<ReviewEligibilityDto> {
+    return this.activityService.getReviewEligibility(id, appUser.id);
   }
 
   @Patch(':id')

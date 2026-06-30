@@ -140,8 +140,4 @@ export class ActivityDto {
   @ValidateNested({ each: true })
   @Type(() => ReviewDto)
   reviews?: ReviewDto[];
-
-  @ApiPropertyOptional({ example: true })
-  @IsOptional()
-  has_confirmed_booking?: boolean;
 }
